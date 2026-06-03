@@ -1,0 +1,1575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moni AI - Product Audit & UX Teardown Report</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-color: #060813;
+            --panel-bg: #0D1126;
+            --glass-bg: rgba(255, 255, 255, 0.02);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-hover: rgba(255, 255, 255, 0.05);
+            --primary: #8B5CF6;
+            --primary-glow: rgba(139, 92, 246, 0.2);
+            --accent: #EC4899;
+            --emerald: #10B981;
+            --rose: #EF4444;
+            --amber: #F59E0B;
+            --blue: #3B82F6;
+            --text-primary: #F3F4F6;
+            --text-secondary: #9CA3AF;
+            --text-muted: #6B7280;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --card-radius: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.08) 0px, transparent 50%);
+        }
+
+        /* Header block */
+        header {
+            background: rgba(13, 17, 38, 0.4);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--card-radius);
+            padding: 32px;
+            backdrop-filter: blur(16px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+        }
+
+        .header-left h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #FFF 30%, #C084FC 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-left p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .badge-info {
+            background-color: rgba(139, 92, 246, 0.15);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            color: #C084FC;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .header-right {
+            text-align: right;
+            border-left: 1px solid var(--glass-border);
+            padding-left: 24px;
+        }
+
+        .header-right .author {
+            font-size: 15px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .header-right .id {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Navigation Toggles */
+        .tabs-nav {
+            display: flex;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-border);
+            padding: 6px;
+            border-radius: 12px;
+            align-self: flex-start;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn:hover {
+            color: white;
+            background: var(--glass-hover);
+        }
+
+        .tab-btn.active {
+            color: white;
+            background: var(--primary);
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        /* Sections Grid */
+        .content-section {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .content-section.active {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .single-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--card-radius);
+            padding: 32px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 14px;
+        }
+
+        .panel-title-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-title i {
+            color: var(--primary);
+        }
+
+        /* Evidence Gallery Section */
+        .evidence-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-top: 10px;
+        }
+
+        .evidence-card {
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+        }
+
+        .evidence-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary);
+            box-shadow: 0 12px 30px var(--primary-glow);
+        }
+
+        .evidence-img-container {
+            position: relative;
+            height: 380px;
+            background: #000;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: zoom-in;
+        }
+
+        .evidence-img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition);
+        }
+
+        .evidence-img-container:hover img {
+            transform: scale(1.05);
+            opacity: 0.9;
+        }
+
+        .evidence-zoom-badge {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .evidence-caption {
+            padding: 16px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--glass-border);
+            background: rgba(13, 17, 38, 0.6);
+            flex-grow: 1;
+        }
+
+        .evidence-caption strong {
+            color: white;
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        /* 4 Paths Grid */
+        .paths-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+        }
+
+        .path-card {
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            transition: var(--transition);
+        }
+
+        .path-card.active-path {
+            border-color: rgba(16, 185, 129, 0.3);
+            background: rgba(16, 185, 129, 0.01);
+        }
+
+        .path-card.broken-path {
+            border-color: rgba(239, 68, 68, 0.3);
+            background: rgba(239, 68, 68, 0.01);
+        }
+
+        .path-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .path-card.active-path:hover {
+            border-color: var(--emerald);
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.1);
+        }
+
+        .path-card.broken-path:hover {
+            border-color: var(--rose);
+            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.1);
+        }
+
+        .path-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .path-name {
+            font-size: 16px;
+            font-weight: 800;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .path-badge {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .badge-success {
+            background-color: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: var(--emerald);
+        }
+
+        .badge-error {
+            background-color: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: var(--rose);
+        }
+
+        .path-question {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-style: italic;
+            border-left: 2px solid var(--primary);
+            padding-left: 10px;
+        }
+
+        .path-desc {
+            font-size: 13.5px;
+            line-height: 1.5;
+            color: var(--text-secondary);
+        }
+
+        .path-desc strong {
+            color: white;
+        }
+
+        /* Flow Visualizers */
+        .flow-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .flow-container::before {
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 10px;
+            bottom: 10px;
+            width: 2px;
+            background: var(--glass-border);
+        }
+
+        .flow-step {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        .flow-step::before {
+            content: '';
+            position: absolute;
+            left: -20px;
+            top: 4px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            border: 3px solid var(--panel-bg);
+            z-index: 2;
+            transition: var(--transition);
+        }
+
+        .flow-step.active::before {
+            background: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .flow-step.error::before {
+            background: var(--rose);
+            box-shadow: 0 0 10px var(--rose);
+        }
+
+        .flow-step.success::before {
+            background: var(--emerald);
+            box-shadow: 0 0 10px var(--emerald);
+        }
+
+        .step-actor {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        .flow-step.active .step-actor { color: var(--primary); }
+        .flow-step.error .step-actor { color: var(--rose); }
+        .flow-step.success .step-actor { color: var(--emerald); }
+
+        .step-content {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+
+        .flow-step.error .step-content {
+            border-color: rgba(239, 68, 68, 0.25);
+            background: rgba(239, 68, 68, 0.02);
+        }
+
+        .flow-step.success .step-content {
+            border-color: rgba(16, 185, 129, 0.25);
+            background: rgba(16, 185, 129, 0.02);
+        }
+
+        .step-note {
+            font-size: 11.5px;
+            color: var(--text-muted);
+            font-style: italic;
+            margin-top: 2px;
+        }
+
+        /* Visual Interactive Simulator */
+        .sim-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .sim-phone-wrapper {
+            background: #090B16;
+            border: 4px solid var(--glass-border);
+            border-radius: 28px;
+            height: 580px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .sim-phone-header {
+            background: #111428;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sim-phone-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            color: white;
+            font-size: 14px;
+        }
+
+        .sim-phone-title {
+            flex-grow: 1;
+        }
+
+        .sim-phone-title h4 {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .sim-phone-title span {
+            font-size: 10px;
+            color: var(--emerald);
+            font-weight: 600;
+        }
+
+        .sim-chat-area {
+            flex-grow: 1;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            background-image: radial-gradient(var(--glass-border) 1px, transparent 0);
+            background-size: 16px 16px;
+        }
+
+        .msg {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-size: 13px;
+            line-height: 1.5;
+            position: relative;
+            animation: bubbleIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+
+        @keyframes bubbleIn {
+            from { opacity: 0; transform: scale(0.9) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .msg.user {
+            background-color: var(--primary);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+
+        .msg.ai {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+
+        .msg-time {
+            font-size: 9px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            text-align: right;
+            display: block;
+        }
+
+        .sim-card-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 8px;
+            width: 100%;
+        }
+
+        .sim-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sim-quick-replies {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .sim-btn {
+            background-color: rgba(139, 92, 246, 0.12);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            color: #C084FC;
+            font-size: 11.5px;
+            padding: 6px 12px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .sim-btn:hover {
+            background-color: rgba(139, 92, 246, 0.25);
+        }
+
+        .sim-controls {
+            padding: 12px;
+            background: #111428;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .control-trigger {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border: none;
+            color: white;
+            font-size: 12.5px;
+            font-weight: 700;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition);
+        }
+
+        .control-trigger:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+
+        /* Product Decision callout */
+        .decision-container {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 24px;
+        }
+
+        .decision-box {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(236, 72, 153, 0.05));
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            border-radius: var(--card-radius);
+            padding: 28px;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            box-shadow: 0 8px 32px rgba(139, 92, 246, 0.05);
+        }
+
+        .decision-icon {
+            background: rgba(139, 92, 246, 0.2);
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #C084FC;
+            flex-shrink: 0;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .decision-text h3 {
+            font-size: 17px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: white;
+            letter-spacing: -0.2px;
+        }
+
+        .decision-text p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Upgraded Visual Product Decision Cards */
+        .decision-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .decision-step-card {
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+            transition: var(--transition);
+        }
+        
+        .decision-step-card:hover {
+            transform: translateX(6px);
+            background: rgba(255, 255, 255, 0.02);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+        
+        .decision-step-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 16px;
+        }
+
+        .decision-step-info {
+            flex-grow: 1;
+        }
+
+        .decision-step-label {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .decision-step-content {
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--text-secondary);
+        }
+
+        /* Specific card colorings */
+        .step-trigger { border-left: 4px solid var(--primary); }
+        .step-trigger .decision-step-icon { background: rgba(139, 92, 246, 0.15); color: #C084FC; }
+        .step-trigger .decision-step-label { color: #C084FC; }
+
+        .step-failure { border-left: 4px solid var(--rose); }
+        .step-failure .decision-step-icon { background: rgba(239, 68, 68, 0.15); color: var(--rose); }
+        .step-failure .decision-step-label { color: var(--rose); }
+
+        .step-impact { border-left: 4px solid var(--amber); }
+        .step-impact .decision-step-icon { background: rgba(245, 158, 11, 0.15); color: var(--amber); }
+        .step-impact .decision-step-label { color: var(--amber); }
+
+        .step-layer { border-left: 4px solid var(--blue); }
+        .step-layer .decision-step-icon { background: rgba(59, 130, 246, 0.15); color: var(--blue); }
+        .step-layer .decision-step-label { color: var(--blue); }
+
+        .step-recommendation { border-left: 4px solid var(--emerald); }
+        .step-recommendation .decision-step-icon { background: rgba(16, 185, 129, 0.15); color: var(--emerald); }
+        .step-recommendation .decision-step-label { color: var(--emerald); }
+
+        /* Upgraded Visual SPEC Git Diff */
+        .spec-file-view {
+            background: #04060f;
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 16px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .spec-file-header {
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .spec-file-badge {
+            margin-left: auto;
+            background: rgba(139, 92, 246, 0.15);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            color: #C084FC;
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            font-weight: 800;
+        }
+
+        .spec-diff-body {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            padding: 12px 0;
+        }
+
+        .diff-line {
+            display: flex;
+            padding: 6px 16px;
+            gap: 12px;
+            transition: var(--transition);
+        }
+
+        .diff-line:hover {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        .diff-sign {
+            width: 12px;
+            display: flex;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+            user-select: none;
+        }
+
+        .diff-text {
+            word-break: break-word;
+        }
+
+        .diff-old {
+            background-color: rgba(239, 68, 68, 0.04);
+            color: #FCA5A5;
+            border-left: 4px solid rgba(239, 68, 68, 0.4);
+        }
+
+        .diff-old .diff-sign {
+            color: var(--rose);
+        }
+
+        .diff-new {
+            background-color: rgba(16, 185, 129, 0.04);
+            color: #A7F3D0;
+            border-left: 4px solid rgba(16, 185, 129, 0.4);
+        }
+
+        .diff-new .diff-sign {
+            color: var(--emerald);
+        }
+        
+        .diff-new strong {
+            color: white;
+        }
+
+        .diff-gutter {
+            width: 32px;
+            text-align: right;
+            color: var(--text-muted);
+            font-size: 10px;
+            user-select: none;
+            flex-shrink: 0;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            padding-right: 8px;
+        }
+
+        .spec-badge {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--emerald);
+            padding: 1px 4px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            margin-right: 4px;
+            display: inline-block;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .inline-code {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #C084FC;
+            padding: 1px 4px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        /* Lightbox Image Modal */
+        .image-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            cursor: zoom-out;
+            animation: fadeIn 0.25s ease;
+        }
+
+        .image-modal.active {
+            display: flex;
+        }
+
+        .image-modal img {
+            max-width: 100%;
+            max-height: 90vh;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .image-modal-close {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            font-size: 12.5px;
+            color: var(--text-muted);
+            border-top: 1px solid var(--glass-border);
+            padding-top: 24px;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header section -->
+    <header>
+        <div class="header-left">
+            <h1>Báo cáo Workshop: Mổ sản phẩm AI thật</h1>
+            <p>
+                <span class="badge-info">Trợ thủ AI - Moni (MoMo)</span>
+                <span>•</span>
+                <span>Đánh giá Trải nghiệm Người dùng &amp; Đề xuất Luồng To-be</span>
+            </p>
+        </div>
+        <div class="header-right">
+            <div class="author">Học viên: Vũ Minh Duy</div>
+            <div class="id">MSSV: 2A202600806</div>
+        </div>
+    </header>
+
+    <!-- Navigation Menu -->
+    <div class="tabs-nav">
+        <button class="tab-btn active" onclick="switchMainTab('audit')" id="btn-audit">
+            <i data-lucide="shield-alert"></i>
+            <span>1. Khảo sát &amp; Bằng chứng (Audit)</span>
+        </button>
+        <button class="tab-btn" onclick="switchMainTab('paths')" id="btn-paths">
+            <i data-lucide="git-branch"></i>
+            <span>2. Khảo sát 4 Paths Conversational</span>
+        </button>
+        <button class="tab-btn" onclick="switchMainTab('flows')" id="btn-flows">
+            <i data-lucide="git-fork"></i>
+            <span>3. Sơ đồ Luồng (As-is vs To-be)</span>
+        </button>
+        <button class="tab-btn" onclick="switchMainTab('simulator')" id="btn-simulator">
+            <i data-lucide="play-circle"></i>
+            <span>4. Trình mô phỏng Trực quan</span>
+        </button>
+    </div>
+
+    <!-- TAB 1: AI Audit & Evidence -->
+    <section class="content-section active" id="sec-audit">
+        <div class="single-panel">
+            <div class="panel-title">
+                <div class="panel-title-left">
+                    <i data-lucide="target"></i>
+                    <span>Lời hứa của sản phẩm (Promise vs Reality)</span>
+                </div>
+            </div>
+            <p style="font-size: 14.5px; line-height: 1.6; color: var(--text-secondary); margin-bottom: 20px;">
+                <strong>Lời hứa sản phẩm:</strong> Trợ thủ tài chính cá nhân thông minh tự động bóc tách ví tiền, phân tích chi tiết và chính xác từng nhóm chi tiêu, đồng thời hiển thị danh sách lịch sử giao dịch trực quan giúp người dùng kiểm soát dòng tiền một cách chủ động.
+            </p>
+            <div style="font-size: 13.5px; line-height: 1.5; color: var(--text-secondary); display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--glass-border); border-radius: 8px; padding: 16px;">
+                    <strong style="color:var(--primary); display:block; margin-bottom:6px;">Nhóm User được hướng tới:</strong>
+                    Người dùng ví điện tử MoMo có nhu cầu quản lý tài chính cá nhân, cần báo cáo nhanh gọn về dòng tiền ra vào mà không muốn ghi chép tay thủ công.
+                </div>
+                <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--glass-border); border-radius: 8px; padding: 16px;">
+                    <strong style="color:var(--accent); display:block; margin-bottom:6px;">Kỳ vọng đối với AI:</strong>
+                    AI có khả năng phân loại chính xác các mục giao dịch (Ăn uống, Mua sắm, v.v.), hiểu được các truy vấn chi tiết của người dùng và hiển thị ngay thẻ giao diện chứa thông tin giao dịch tương ứng để thực hiện thao tác nhanh.
+                </div>
+            </div>
+        </div>
+
+        <div class="single-panel">
+            <div class="panel-title" style="border-bottom-color: rgba(139, 92, 246, 0.2);">
+                <div class="panel-title-left">
+                    <i data-lucide="image"></i>
+                    <span>Bằng chứng thực nghiệm (Screenshots &amp; Observation)</span>
+                </div>
+                <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Nhấp vào ảnh để phóng to</span>
+            </div>
+            
+            <!-- Gallery of screenshots -->
+            <div class="evidence-gallery">
+                <div class="evidence-card">
+                    <div class="evidence-img-container" onclick="openImageModal(this.querySelector('img').src)">
+                        <img src="evidence/z7896861424845_aef23f6ff86185342d1a838318f37bf4.jpg" alt="Bằng chứng 1: Loop Failure">
+                        <div class="evidence-zoom-badge"><i data-lucide="maximize-2" style="width:12px;height:12px;"></i> Phóng to</div>
+                    </div>
+                    <div class="evidence-caption">
+                        <strong>Bằng chứng 1: Lỗi vòng lặp kẹt (Loop Failure)</strong>
+                        AI gửi văn bản hướng dẫn người dùng "kéo xuống xem chi tiết từng khoản" nhưng <strong>ẩn hoàn toàn giao diện danh sách thẻ giao dịch</strong>. Khi người dùng hỏi vặn lại "giao dịch đâu", AI bị kẹt vào vòng lặp và nhai lại câu thoại cũ vô nghĩa.
+                    </div>
+                </div>
+
+                <div class="evidence-card">
+                    <div class="evidence-img-container" onclick="openImageModal(this.querySelector('img').src)">
+                        <img src="evidence/z7896861499185_8e63963cb4731e83e20c44cf38930342.jpg" alt="Bằng chứng 2: Misunderstanding">
+                        <div class="evidence-zoom-badge"><i data-lucide="maximize-2" style="width:12px;height:12px;"></i> Phóng to</div>
+                    </div>
+                    <div class="evidence-caption">
+                        <strong>Bằng chứng 2: Nhập nhằng bản chất (Misunderstanding)</strong>
+                        Khi người dùng có nhu cầu truy vấn dữ liệu động "cho tôi xem 5 danh mục gần nhất", AI không hiểu được mong muốn lọc giao dịch, mà chỉ trả ra một <strong>đoạn văn bản liệt kê tên các nhóm danh mục tĩnh</strong> (1. Ăn uống, 2. Mua sắm...).
+                    </div>
+                </div>
+
+                <div class="evidence-card">
+                    <div class="evidence-img-container" onclick="openImageModal(this.querySelector('img').src)">
+                        <img src="evidence/z7896861519087_ffac282564ea7a4c903ef160e3a97d4e.jpg" alt="Bằng chứng 3: Data Inconsistency">
+                        <div class="evidence-zoom-badge"><i data-lucide="maximize-2" style="width:12px;height:12px;"></i> Phóng to</div>
+                    </div>
+                    <div class="evidence-caption">
+                        <strong>Bằng chứng 3: Mâu thuẫn dữ liệu (Inconsistency)</strong>
+                        Ở bước trước AI vừa gợi ý danh mục số 4 là <strong>"Nhà cửa"</strong>. Khi người dùng nhấn vào để xem, AI lập tức tự phủ định mình: <em>"Bạn chưa có giao dịch nào ở Nhà cửa..."</em>. Lỗi do không đồng bộ dữ liệu giữa NLU hiển thị gợi ý và SQL Query thực tế.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TAB 2: 4 Paths Conversational Audit -->
+    <section class="content-section" id="sec-paths">
+        <div class="single-panel">
+            <div class="panel-title">
+                <div class="panel-title-left">
+                    <i data-lucide="git-branch"></i>
+                    <span>Cấu trúc 4 Luồng hội thoại (4 Paths Conversational)</span>
+                </div>
+            </div>
+            
+            <div class="paths-grid">
+                <!-- Happy Path -->
+                <div class="path-card active-path">
+                    <div class="path-header">
+                        <span class="path-name">1. Happy Path</span>
+                        <span class="path-badge badge-success">Thành công</span>
+                    </div>
+                    <p class="path-question">Khi AI đúng và tự tin, user thấy gì?</p>
+                    <p class="path-desc">
+                        User hỏi: <em>"Phân tích chi tiêu mua sắm 2 tuần qua"</em>.<br>
+                        AI tự tin trả về đoạn text tóm tắt chính xác tổng chi tiêu (65.000đ) kèm nút gợi ý hành động nhanh: <strong>"Chi tiết từng giao dịch"</strong>.
+                    </p>
+                </div>
+
+                <!-- Low-confidence Path -->
+                <div class="path-card broken-path">
+                    <div class="path-header">
+                        <span class="path-name">2. Low-confidence</span>
+                        <span class="path-badge badge-error">Gãy nhẹ</span>
+                    </div>
+                    <p class="path-question">Khi AI không chắc, hệ thống làm gì?</p>
+                    <p class="path-desc">
+                        User hỏi: <em>"cho tôi xem 5 danh mục gần nhất"</em>.<br>
+                        AI phân vân ý định, không hỏi lại hay làm rõ (Clarification), cũng không đưa ra bộ lọc giao dịch mà <strong>chỉ liệt kê text tĩnh tên danh mục</strong> (Ăn uống, Mua sắm...), gây lệch pha trải nghiệm.
+                    </p>
+                </div>
+
+                <!-- Failure Path -->
+                <div class="path-card broken-path">
+                    <div class="path-header">
+                        <span class="path-name">3. Failure Path</span>
+                        <span class="path-badge badge-error">Gãy nặng</span>
+                    </div>
+                    <p class="path-question">Khi AI sai, user nhận biết và sửa thế nào?</p>
+                    <p class="path-desc">
+                        User bấm vào gợi ý "Nhà cửa" -> AI trả về <strong>mâu thuẫn dữ liệu</strong>: <em>"Chưa có giao dịch nào..."</em>.<br>
+                        Hậu quả: User nhận biết lỗi ngay lập tức. Nhưng <strong>không có cách nào sửa đổi</strong> vì UI rỗng, không có nút hành động thay thế.
+                    </p>
+                </div>
+
+                <!-- Correction Path -->
+                <div class="path-card broken-path">
+                    <div class="path-header">
+                        <span class="path-name">4. Correction Path</span>
+                        <span class="path-badge badge-error">Không có</span>
+                    </div>
+                    <p class="path-question">Khi user sửa, correction có được lưu/học lại?</p>
+                    <p class="path-desc">
+                        User cố gắng sửa lỗi bằng cách gõ: <em>"giao dịch của tôi đâu"</em>.<br>
+                        Hệ thống **hoàn toàn bỏ qua correction**, bị kẹt vào vòng lặp thoại cũ. Dữ liệu sửa lỗi biến mất và không được ghi nhận để cập nhật UI hay huấn luyện lại AI.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TAB 3: User Flows comparison -->
+    <section class="content-section" id="sec-flows">
+        <div class="grid-layout">
+            <!-- As-is flow panel -->
+            <div class="single-panel" style="border-top: 3px solid var(--rose);">
+                <div class="panel-title">
+                    <div class="panel-title-left">
+                        <i data-lucide="trending-down" style="color: var(--rose);"></i>
+                        <span>Sơ đồ hiện tại (As-is Flow) - Có lỗi kẹt</span>
+                    </div>
+                </div>
+                
+                <div class="flow-container">
+                    <div class="flow-step active">
+                        <div class="step-actor">Bước 1: Khách hàng (User)</div>
+                        <div class="step-content">Yêu cầu phân tích chi tiêu: "Moni ơi, phân tích chi tiêu mua sắm 2 tuần qua"</div>
+                    </div>
+                    <div class="flow-step active">
+                        <div class="step-actor">Bước 2: Trợ lý AI (Moni)</div>
+                        <div class="step-content">Trả về thống kê tổng quát dạng text kèm nút gợi ý hành động "Chi tiết từng giao dịch"</div>
+                    </div>
+                    <div class="flow-step active">
+                        <div class="step-actor">Bước 3: Khách hàng (User)</div>
+                        <div class="step-content">Yêu cầu xem sâu hơn: "Cho tôi xem 5 danh mục gần nhất"</div>
+                    </div>
+                    <div class="flow-step active">
+                        <div class="step-actor">Bước 4: Trợ lý AI (Moni)</div>
+                        <div class="step-content">Trả về danh sách tĩnh dạng text: 1. Ăn uống, 2. Mua sắm, 3. Di chuyển, 4. Nhà cửa, 5. Giải trí</div>
+                    </div>
+                    <div class="flow-step active">
+                        <div class="step-actor">Bước 5: Khách hàng (User)</div>
+                        <div class="step-content">Truy vấn sâu vào mục gợi ý: "5 giao dịch nhà cửa gần nhất"</div>
+                    </div>
+                    <div class="flow-step error">
+                        <div class="step-actor">Bước 6: Trợ lý AI (Moni) [🚨 ĐIỂM GÃY KẸT]</div>
+                        <div class="step-content">
+                            <strong>Mâu thuẫn dữ liệu:</strong> Báo lỗi "Bạn chưa có giao dịch nào ở Nhà cửa..."<br>
+                            <strong>Vòng lặp lỗi:</strong> Nhắc người dùng "kéo xuống xem" nhưng ẩn hoàn toàn UI Cards.
+                        </div>
+                        <div class="step-note">User hoang mang hỏi "giao dịch ở đâu" và bị kẹt vào vòng lặp phản hồi cũ.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- To-be flow panel -->
+            <div class="single-panel" style="border-top: 3px solid var(--emerald);">
+                <div class="panel-title">
+                    <div class="panel-title-left">
+                        <i data-lucide="trending-up" style="color: var(--emerald);"></i>
+                        <span>Giải pháp tối ưu (To-be Flow) - Cải tiến UX</span>
+                    </div>
+                </div>
+
+                <div class="flow-container">
+                    <div class="flow-step active">
+                        <div class="step-actor">Bước 1: Khách hàng (User)</div>
+                        <div class="step-content">Yêu cầu xem 5 danh mục hoặc giao dịch nhà cửa gần nhất.</div>
+                    </div>
+                    <div class="flow-step success">
+                        <div class="step-actor">Bước 2: Hệ thống Backend (AI System) [⚡ CẢI TIẾN]</div>
+                        <div class="step-content">
+                            <strong>Cross-Check Validation:</strong> Quét DB thực tế thời gian thực trước khi in. Nếu danh mục "Nhà cửa" có số giao dịch = 0, loại bỏ ngay khỏi đề xuất ngoài màn hình.
+                        </div>
+                    </div>
+                    <div class="flow-step success">
+                        <div class="step-actor">Bước 3: Trợ lý AI (Moni) [⚡ CẢI TIẾN]</div>
+                        <div class="step-content">
+                            <strong>Đồng bộ UI Card List:</strong> Ép hiển thị thẻ chi tiết giao dịch tự động đi kèm cùng câu thoại hướng dẫn thay vì ẩn.
+                        </div>
+                    </div>
+                    <div class="flow-step success">
+                        <div class="step-actor">Bước 4: Xử lý trạng thái trống (Smart Fallback) [⚡ CẢI TIẾN]</div>
+                        <div class="step-content">
+                            Nếu user gõ thủ công "Nhà cửa" trống: AI phản hồi lịch sự + đề xuất nút chuyển tiếp sang danh mục nhiều giao dịch nhất (ví dụ: Ăn uống).
+                        </div>
+                    </div>
+                    <div class="flow-step success">
+                        <div class="step-actor">Bước 5: Nhật ký sửa lỗi (Correction Log) [⚡ CẢI TIẾN]</div>
+                        <div class="step-content">
+                            Nhận diện các từ khóa bối rối ("sao không thấy", "giao dịch đâu") để tự động kích hoạt Reload UI hoặc Handoff hỗ trợ kỹ thuật.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TAB 4: Visual Simulator -->
+    <section class="content-section" id="sec-simulator">
+        <div class="single-panel">
+            <div class="panel-title">
+                <div class="panel-title-left">
+                    <i data-lucide="smartphone"></i>
+                    <span>So sánh Trực quan: Bản Lỗi (As-is) vs Bản Sửa Đổi (To-be)</span>
+                </div>
+            </div>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 24px;">
+                Hãy nhấp vào các nút <strong>"Kích hoạt thử nghiệm"</strong> ở dưới cùng của mỗi mô hình điện thoại để trải nghiệm sự khác biệt lớn về mặt UX/UI giữa luồng cũ bị kẹt và giải pháp tối ưu hóa mới.
+            </p>
+
+            <div class="sim-grid">
+                <!-- Phone 1: Broken -->
+                <div class="sim-phone-wrapper">
+                    <div class="sim-phone-header">
+                        <div class="sim-phone-avatar">M</div>
+                        <div class="sim-phone-title">
+                            <h4>Moni AI (Bản Lỗi As-is)</h4>
+                            <span style="color: var(--rose);">Bị kẹt lỗi UI &amp; Dữ liệu</span>
+                        </div>
+                        <i data-lucide="battery" style="color:var(--text-muted); width:18px;"></i>
+                    </div>
+
+                    <div class="sim-chat-area" id="chat-broken">
+                        <div class="msg ai">
+                            Moni chào bạn! Bạn muốn tôi phân tích ví chi tiêu trong 2 tuần qua không?
+                            <span class="msg-time">12:00</span>
+                        </div>
+                    </div>
+
+                    <div class="sim-controls">
+                        <button class="control-trigger" onclick="runBrokenSim()" style="background: linear-gradient(135deg, var(--rose), #D97706)">
+                            <i data-lucide="play"></i>
+                            <span>Kích hoạt thử nghiệm lỗi</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Phone 2: Fixed -->
+                <div class="sim-phone-wrapper" style="border-color: rgba(16, 185, 129, 0.3);">
+                    <div class="sim-phone-header">
+                        <div class="sim-phone-avatar" style="background: linear-gradient(135deg, var(--emerald), var(--blue));">M</div>
+                        <div class="sim-phone-title">
+                            <h4>Moni AI (Bản Sửa To-be)</h4>
+                            <span>Mượt mà &amp; Đồng bộ dữ liệu</span>
+                        </div>
+                        <i data-lucide="battery" style="color:var(--emerald); width:18px;"></i>
+                    </div>
+
+                    <div class="sim-chat-area" id="chat-fixed">
+                        <div class="msg ai">
+                            Moni chào bạn! Tôi đã đồng bộ dữ liệu ví. Hãy chọn phân tích chi tiêu bên dưới nhé!
+                            <span class="msg-time">12:00</span>
+                        </div>
+                    </div>
+
+                    <div class="sim-controls">
+                        <button class="control-trigger" onclick="runFixedSim()" style="background: linear-gradient(135deg, var(--emerald), var(--blue))">
+                            <i data-lucide="check-circle2"></i>
+                            <span>Kích hoạt luồng mượt</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Product Decision & SPEC Output Box -->
+    <div class="decision-container">
+        <!-- Structured Finding to Product Decision -->
+        <div class="single-panel">
+            <div class="panel-title">
+                <div class="panel-title-left">
+                    <i data-lucide="gavel"></i>
+                    <span>Quyết định Sản phẩm (Product Decision)</span>
+                </div>
+            </div>
+            
+            <p style="font-size:14.5px; color:var(--text-secondary); line-height: 1.5; margin-bottom: 8px;">
+                Tìm phát hiện (finding) trong đợt mổ ứng dụng Moni AI được cấu trúc hóa trực quan để làm đầu vào cho đội ngũ phát triển:
+            </p>
+
+            <div class="decision-steps">
+                <!-- Step 1: Trigger -->
+                <div class="decision-step-card step-trigger">
+                    <div class="decision-step-icon">
+                        <i data-lucide="play-circle"></i>
+                    </div>
+                    <div class="decision-step-info">
+                        <span class="decision-step-label">Khi user (Trigger)</span>
+                        <div class="decision-step-content">Người dùng yêu cầu phân tích chi tiêu sâu hoặc nhấn nút chọn xem chi tiết của một danh mục (như "Nhà cửa").</div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Failure -->
+                <div class="decision-step-card step-failure">
+                    <div class="decision-step-icon">
+                        <i data-lucide="alert-triangle"></i>
+                    </div>
+                    <div class="decision-step-info">
+                        <span class="decision-step-label">AI / Product (Failure)</span>
+                        <div class="decision-step-content">Hệ thống báo lỗi mâu thuẫn dữ liệu (nói không có giao dịch nhưng trước đó lại hiển thị gợi ý) và ẩn hoàn toàn giao diện danh sách thẻ (UI Cards).</div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Impact -->
+                <div class="decision-step-card step-impact">
+                    <div class="decision-step-icon">
+                        <i data-lucide="frown"></i>
+                    </div>
+                    <div class="decision-step-info">
+                        <span class="decision-step-label">Hậu quả là (Impact)</span>
+                        <div class="decision-step-content">Người dùng bối rối vì kẹt trong vòng lặp thoại hướng dẫn trống mà không có lối thoát hoặc nút điều hướng thay thế. Đánh mất niềm tin dữ liệu của AI.</div>
+                    </div>
+                </div>
+
+                <!-- Step 4: Layer -->
+                <div class="decision-step-card step-layer">
+                    <div class="decision-step-icon">
+                        <i data-lucide="layers"></i>
+                    </div>
+                    <div class="decision-step-info">
+                        <span class="decision-step-label">Lỗi thuộc Layer</span>
+                        <div class="decision-step-content"><strong>Data-tool layer</strong> (Truy vấn cơ sở dữ liệu thực tế và bộ lọc NLU không đồng nhất) + <strong>UX Recovery layer</strong> (Thiếu kịch bản xử lý trạng thái trống).</div>
+                    </div>
+                </div>
+
+                <!-- Step 5: Recommendation -->
+                <div class="decision-step-card step-recommendation">
+                    <div class="decision-step-icon">
+                        <i data-lucide="check-square"></i>
+                    </div>
+                    <div class="decision-step-info">
+                        <span class="decision-step-label">Nên sửa bằng (Recommendation)</span>
+                        <div class="decision-step-content">Ràng buộc logic: Tầng backend phải <strong>Cross-check Validation</strong> trước khi in danh mục gợi ý. Tích hợp <strong>Smart Fallback</strong> đề xuất mục chi tiêu cao nhất khi tìm kiếm rỗng, bắt buộc đồng bộ hiển thị <strong>UI Card List</strong>.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SPEC Impact Statement as a Code Diff -->
+        <div class="single-panel" style="border-left: 4px solid var(--accent);">
+            <div class="panel-title">
+                <div class="panel-title-left">
+                    <i data-lucide="file-text" style="color:var(--accent);"></i>
+                    <span>Thay đổi trong Đặc tả sản phẩm (SPEC Impact)</span>
+                </div>
+            </div>
+            <p style="font-size:14.5px; color:var(--text-secondary); line-height: 1.6; margin-bottom: 8px;">
+                Cập nhật trực quan các điều khoản mới trong file tài liệu đặc tả kỹ thuật <strong>(SPEC Diff)</strong>:
+            </p>
+            
+            <div class="spec-file-view">
+                <div class="spec-file-header">
+                    <i data-lucide="file-code" style="width:14px;height:14px;color:#C084FC;"></i>
+                    <span style="font-weight:600; color:white;">specs/moni_chat_flow.spec.md</span>
+                    <span class="spec-file-badge">Git Diff View</span>
+                </div>
+                <div class="spec-file-meta" style="background: rgba(255,255,255,0.01); border-bottom: 1px solid var(--glass-border); padding: 8px 16px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between;">
+                    <span>@@ -42,2 +42,3 @@ class MoniChatFlowSpec</span>
+                    <span style="color: var(--emerald); font-weight: bold;">+3 new rules</span>
+                </div>
+                <div class="spec-diff-body">
+                    <!-- Line 1: Old -->
+                    <div class="diff-line diff-old">
+                        <div class="diff-gutter">42</div>
+                        <div class="diff-gutter"></div>
+                        <div class="diff-sign">-</div>
+                        <div class="diff-text">#4.2: Hệ thống tự động gợi ý danh mục tĩnh dạng văn bản thuần dựa trên dữ liệu tĩnh mà không cần kiểm tra số lượng giao dịch thực tế trong Database.</div>
+                    </div>
+                    <!-- Line 2: Old -->
+                    <div class="diff-line diff-old">
+                        <div class="diff-gutter">43</div>
+                        <div class="diff-gutter"></div>
+                        <div class="diff-sign">-</div>
+                        <div class="diff-text">#4.3: Hướng dẫn người dùng bằng thoại văn bản kéo màn hình xuống để xem chi tiết giao dịch mà không quy định thành phần UI hiển thị đồng bộ.</div>
+                    </div>
+                    <!-- Line 3: New -->
+                    <div class="diff-line diff-new">
+                        <div class="diff-gutter"></div>
+                        <div class="diff-gutter">42</div>
+                        <div class="diff-sign">+</div>
+                        <div class="diff-text"><span class="spec-badge">[SPEC-01]</span> <strong>Real-time Database Cross-check:</strong> Tầng backend bắt buộc phải chạy truy vấn đếm (COUNT) số giao dịch thực tế của từng danh mục trước khi hiển thị nút gợi ý ra màn hình. Loại bỏ ngay danh mục khỏi danh sách nếu số giao dịch = 0.</div>
+                    </div>
+                    <!-- Line 4: New -->
+                    <div class="diff-line diff-new">
+                        <div class="diff-gutter"></div>
+                        <div class="diff-gutter">43</div>
+                        <div class="diff-sign">+</div>
+                        <div class="diff-text"><span class="spec-badge">[SPEC-02]</span> <strong>Synchronous Card Rendering:</strong> Mọi câu thoại hướng dẫn xem chi tiết bắt buộc phải trả về đồng bộ component <code class="inline-code">TransactionCardList</code> chứa danh sách các giao dịch. Nghiêm cấm chỉ hiển thị text hướng dẫn.</div>
+                    </div>
+                    <!-- Line 5: New -->
+                    <div class="diff-line diff-new">
+                        <div class="diff-gutter"></div>
+                        <div class="diff-gutter">44</div>
+                        <div class="diff-sign">+</div>
+                        <div class="diff-text"><span class="spec-badge">[SPEC-03]</span> <strong>Smart Empty-State Fallback:</strong> Nếu người dùng nhập thủ công danh mục trống, hệ thống kích hoạt giao diện <code class="inline-code">EmptyStateFallback</code> và hiển thị tối thiểu 2 nút hành động (Quick Replies) để chuyển đổi qua danh mục chi tiêu cao nhất.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lightbox Modal for Images -->
+    <div class="image-modal" id="imageModal" onclick="closeImageModal()">
+        <button class="image-modal-close" onclick="closeImageModal()"><i data-lucide="x"></i></button>
+        <img id="modalImg" src="" alt="Zoomed image">
+    </div>
+
+    <!-- Footer info -->
+    <footer>
+        Báo cáo Workshop môn học Trải nghiệm Người dùng &amp; Công nghệ Trợ lý AI • Đại học VinAI 2026
+    </footer>
+
+    <script>
+        // Main Tab Switcher
+        function switchMainTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+            
+            document.getElementById('btn-' + tabId).classList.add('active');
+            document.getElementById('sec-' + tabId).classList.add('active');
+            
+            lucide.createIcons();
+        }
+
+        // Image Lightbox zoom functions
+        function openImageModal(src) {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImg');
+            modalImg.src = src;
+            modal.classList.add('active');
+        }
+
+        function closeImageModal() {
+            document.getElementById('imageModal').classList.remove('active');
+        }
+
+        // Broken Simulator Logic
+        function runBrokenSim() {
+            const chat = document.getElementById('chat-broken');
+            chat.innerHTML = ""; // clear
+            
+            setTimeout(() => addMsg(chat, 'user', 'Cho tôi xem 5 danh mục gần nhất'), 200);
+            setTimeout(() => addMsg(chat, 'ai', 'Danh mục chi tiêu gần đây của bạn:<br>1. Ăn uống<br>2. Mua sắm<br>3. Di chuyển<br>4. Nhà cửa (Gợi ý)<br>5. Giải trí'), 1200);
+            
+            setTimeout(() => addMsg(chat, 'user', 'Cho tôi xem 5 giao dịch nhà cửa gần nhất'), 2500);
+            
+            // Lỗi mâu thuẫn dữ liệu & vòng lặp kẹt
+            setTimeout(() => {
+                addMsg(chat, 'ai', '🚨 Hệ thống nhận thấy bạn chưa phát sinh bất kỳ giao dịch nào thuộc danh mục "Nhà cửa" trong 2 tuần qua.');
+            }, 3800);
+            
+            setTimeout(() => {
+                addMsg(chat, 'ai', 'Bạn vui lòng kéo màn hình xuống để xem chi tiết danh sách giao dịch nhé!');
+            }, 4500);
+
+            setTimeout(() => addMsg(chat, 'user', 'Giao dịch đâu? Có thấy cái nào đâu?'), 6000);
+            
+            // Lặp lại vô nghĩa
+            setTimeout(() => {
+                addMsg(chat, 'ai', 'Bạn vui lòng kéo màn hình xuống để xem chi tiết danh sách giao dịch nhé!');
+            }, 7200);
+        }
+
+        // Fixed Simulator Logic
+        function runFixedSim() {
+            const chat = document.getElementById('chat-fixed');
+            chat.innerHTML = ""; // clear
+            
+            setTimeout(() => addMsg(chat, 'user', 'Cho tôi xem các danh mục gần nhất'), 200);
+            
+            // Backend Cross-Check Validation loại bỏ Nhà cửa
+            setTimeout(() => {
+                addMsg(chat, 'ai', 'Dựa trên ví tiền của bạn, đây là các danh mục chi tiêu thực tế:<br>1. Ăn uống (7 GD)<br>2. Mua sắm (1 GD)<br>3. Di chuyển (3 GD)');
+            }, 1200);
+
+            setTimeout(() => addMsg(chat, 'user', 'Tôi muốn gõ xem mục Nhà cửa'), 2500);
+
+            // Smart Fallback empty state + UI gợi ý nút bấm chuyển tiếp
+            setTimeout(() => {
+                addMsg(chat, 'ai', 'Trong 2 tuần qua bạn không phát sinh chi tiêu cho "Nhà cửa". Bạn có muốn kiểm tra danh mục "Ăn uống" đang có nhiều biến động nhất (340k) không?');
+                
+                // Render suggestions
+                const btnContainer = document.createElement('div');
+                btnContainer.className = 'sim-quick-replies';
+                btnContainer.innerHTML = `
+                    <button class="sim-btn" onclick="selectFixedOption('anuong')">Xem Ăn uống (7 GD)</button>
+                    <button class="sim-btn" onclick="selectFixedOption('muasam')">Xem Mua sắm (1 GD)</button>
+                `;
+                chat.appendChild(btnContainer);
+                chat.scrollTop = chat.scrollHeight;
+            }, 3800);
+        }
+
+        function selectFixedOption(type) {
+            const chat = document.getElementById('chat-fixed');
+            const btns = chat.querySelector('.sim-quick-replies');
+            if (btns) btns.remove();
+
+            if (type === 'anuong') {
+                addMsg(chat, 'user', 'Xem Ăn uống (7 GD)');
+                
+                // Đồng bộ UI card list
+                setTimeout(() => {
+                    addMsg(chat, 'ai', 'Đồng bộ danh sách chi tiết chi tiêu ăn uống của bạn:');
+                    
+                    const cardList = document.createElement('div');
+                    cardList.className = 'sim-card-list';
+                    cardList.innerHTML = `
+                        <div class="sim-card">
+                            <span>Cơm tấm đêm</span>
+                            <span style="font-weight:700; color:var(--accent);">-35,000đ</span>
+                        </div>
+                        <div class="sim-card">
+                            <span>Trà sữa Koi Thé</span>
+                            <span style="font-weight:700; color:var(--accent);">-65,000đ</span>
+                        </div>
+                        <div class="sim-card">
+                            <span>Đi chợ Bách Hóa Xanh</span>
+                            <span style="font-weight:700; color:var(--accent);">-240,000đ</span>
+                        </div>
+                    `;
+                    chat.appendChild(cardList);
+                    chat.scrollTop = chat.scrollHeight;
+                }, 1000);
+            }
+        }
+
+        // Helper to append message bubble
+        function addMsg(container, actor, text) {
+            const msg = document.createElement('div');
+            msg.className = `msg ${actor}`;
+            msg.innerHTML = text;
+            
+            const time = document.createElement('span');
+            time.className = 'msg-time';
+            time.innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            msg.appendChild(time);
+            
+            container.appendChild(msg);
+            container.scrollTop = container.scrollHeight;
+            
+            lucide.createIcons();
+        }
+
+        // Initialize icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>

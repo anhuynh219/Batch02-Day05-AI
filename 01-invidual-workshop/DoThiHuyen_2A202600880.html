@@ -1,0 +1,835 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>App Teardown — MoMo Moni · Đỗ Thị Huyền</title>
+    <style>
+      :root {
+        --pink: #a50064;
+        --pink-2: #d82d8b;
+        --ink: #1d1d2b;
+        --muted: #6b6b80;
+        --line: #ececf3;
+        --bg: #f6f6fb;
+        --card: #ffffff;
+        --ok: #1f9d55;
+        --warn: #e08a00;
+        --bad: #d63b3b;
+        --shadow: 0 8px 30px rgba(40, 10, 40, 0.08);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family:
+          "Segoe UI",
+          system-ui,
+          -apple-system,
+          Roboto,
+          Arial,
+          sans-serif;
+        color: var(--ink);
+        background: var(--bg);
+        line-height: 1.6;
+      }
+      .wrap {
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 0 20px 80px;
+      }
+
+      header.hero {
+        background: linear-gradient(135deg, var(--pink), var(--pink-2));
+        color: #fff;
+        padding: 46px 20px 40px;
+        margin-bottom: -30px;
+      }
+      .hero-inner {
+        max-width: 920px;
+        margin: 0 auto;
+      }
+      .badge {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.18);
+        padding: 5px 14px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.4px;
+      }
+      header.hero h1 {
+        margin: 14px 0 6px;
+        font-size: 34px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+      }
+      header.hero p {
+        margin: 0;
+        opacity: 0.92;
+        font-size: 16px;
+      }
+      .meta {
+        margin-top: 18px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .meta span {
+        background: rgba(255, 255, 255, 0.14);
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 13.5px;
+        font-weight: 500;
+      }
+
+      section.card {
+        background: var(--card);
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+        padding: 26px 28px;
+        margin-top: 26px;
+      }
+      h2 {
+        font-size: 21px;
+        margin: 0 0 4px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      h2 .num {
+        background: var(--pink);
+        color: #fff;
+        width: 30px;
+        height: 30px;
+        border-radius: 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        font-weight: 700;
+        flex: none;
+      }
+      h2 + .sub {
+        color: var(--muted);
+        margin: 0 0 18px;
+        font-size: 14.5px;
+      }
+      h3 {
+        font-size: 16px;
+        margin: 22px 0 8px;
+        color: var(--pink);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 6px 0;
+        font-size: 14px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 11px 13px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+      th {
+        background: #faf4f8;
+        color: var(--pink);
+        font-weight: 700;
+        font-size: 13px;
+      }
+      tr:last-child td {
+        border-bottom: none;
+      }
+      td .st {
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      td .st.ok {
+        color: var(--ok);
+      }
+      td .st.warn {
+        color: var(--warn);
+      }
+      td .st.bad {
+        color: var(--bad);
+      }
+
+      .kv {
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 0;
+      }
+      .kv .k {
+        font-weight: 600;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--line);
+        color: var(--muted);
+      }
+      .kv .v {
+        padding: 10px 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      ul {
+        margin: 6px 0;
+        padding-left: 20px;
+      }
+      li {
+        margin: 4px 0;
+      }
+
+      /* Chat evidence */
+      .chat {
+        max-width: 580px;
+        margin: 8px auto 4px;
+        display: flex;
+        flex-direction: column;
+        gap: 11px;
+      }
+      .turn-label {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--pink);
+        margin: 14px auto 2px;
+        text-align: center;
+        background: #faf4f8;
+        padding: 3px 12px;
+        border-radius: 999px;
+      }
+      .msg {
+        display: flex;
+        gap: 10px;
+        align-items: flex-end;
+      }
+      .msg .av {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 700;
+        color: #fff;
+      }
+      .msg .bub {
+        padding: 9px 13px;
+        border-radius: 16px;
+        font-size: 14px;
+        max-width: 80%;
+      }
+      .msg.user {
+        flex-direction: row-reverse;
+      }
+      .msg.user .av {
+        background: #5b5bd6;
+      }
+      .msg.user .bub {
+        background: #5b5bd6;
+        color: #fff;
+        border-bottom-right-radius: 5px;
+      }
+      .msg.bot .av {
+        background: var(--pink);
+      }
+      .msg.bot .bub {
+        background: #f1f1f6;
+        border-bottom-left-radius: 5px;
+      }
+      .msg.bot .bub.flag {
+        background: #fdf2f2;
+        border: 1px solid #f4c9c9;
+      }
+      .msg.bot .bub.good {
+        background: #f1faf4;
+        border: 1px solid #bfe6cc;
+      }
+      .tagline {
+        font-size: 11.5px;
+        font-weight: 700;
+        margin: 1px 0 0 44px;
+      }
+      .tagline.bad {
+        color: var(--bad);
+      }
+      .tagline.warn {
+        color: var(--warn);
+      }
+      .tagline.ok {
+        color: var(--ok);
+      }
+      .conclude {
+        background: #faf4f8;
+        border-left: 4px solid var(--pink);
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin-top: 16px;
+        font-size: 14.5px;
+      }
+
+      .ev-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 14px;
+        margin-top: 14px;
+      }
+      .ev {
+        border: 1px solid var(--line);
+        border-left: 4px solid var(--pink-2);
+        border-radius: 12px;
+        padding: 14px 16px;
+        background: #fff;
+      }
+      .ev .tag {
+        font-size: 11.5px;
+        font-weight: 700;
+        color: #fff;
+        background: var(--pink-2);
+        padding: 2px 9px;
+        border-radius: 999px;
+        display: inline-block;
+        margin-bottom: 8px;
+      }
+      .ev .obs {
+        font-size: 13.6px;
+        margin: 0 0 8px;
+      }
+      .ev .src {
+        font-size: 12.5px;
+        color: var(--muted);
+      }
+
+      .paths {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 14px;
+      }
+      .path {
+        border-radius: 12px;
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+      }
+      .path h4 {
+        margin: 0 0 6px;
+        font-size: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .path p {
+        margin: 0;
+        font-size: 13.6px;
+        color: #333;
+      }
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+      }
+      .path.ok {
+        background: #f1faf4;
+      }
+      .path.ok .dot {
+        background: var(--ok);
+      }
+      .path.warn {
+        background: #fff8ec;
+      }
+      .path.warn .dot {
+        background: var(--warn);
+      }
+      .path.bad {
+        background: #fdf2f2;
+      }
+      .path.bad .dot {
+        background: var(--bad);
+      }
+      .status {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 999px;
+        margin-left: auto;
+      }
+      .status.ok {
+        background: var(--ok);
+        color: #fff;
+      }
+      .status.warn {
+        background: var(--warn);
+        color: #fff;
+      }
+      .status.bad {
+        background: var(--bad);
+        color: #fff;
+      }
+
+      .finding {
+        border-radius: 12px;
+        background: #1d1d2b;
+        color: #e9e9f2;
+        padding: 18px 20px;
+        font-family: "Cascadia Code", Consolas, Menlo, monospace;
+        font-size: 13.3px;
+        white-space: pre-wrap;
+        line-height: 1.7;
+        margin: 10px 0;
+      }
+      .finding.good {
+        background: #10271a;
+      }
+      .finding .lbl {
+        display: block;
+        font-size: 11.5px;
+        letter-spacing: 0.6px;
+        margin-bottom: 8px;
+        font-family: "Segoe UI", sans-serif;
+        font-weight: 700;
+      }
+      .finding .lbl {
+        color: #ff8ac9;
+      }
+      .finding.good .lbl {
+        color: #7ee0a3;
+      }
+      .pill-layer {
+        color: #ffd479;
+      }
+
+      .sketch {
+        background: #0f1020;
+        color: #cfe9d6;
+        border-radius: 12px;
+        padding: 18px;
+        font-family: "Cascadia Code", Consolas, monospace;
+        font-size: 12px;
+        overflow-x: auto;
+        white-space: pre;
+        line-height: 1.55;
+      }
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-top: 12px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .legend b {
+        color: var(--bad);
+      }
+
+      .check li {
+        list-style: none;
+        margin: 8px 0;
+        font-size: 14.5px;
+      }
+      .check {
+        padding-left: 0;
+      }
+      .check .box {
+        color: var(--ok);
+        font-weight: 800;
+        margin-right: 8px;
+      }
+      .impact {
+        margin-top: 14px;
+        background: #faf4f8;
+        border-radius: 10px;
+        padding: 14px 16px;
+        border-left: 4px solid var(--pink);
+        font-size: 14.5px;
+      }
+      footer {
+        text-align: center;
+        color: var(--muted);
+        font-size: 13px;
+        margin-top: 34px;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="hero">
+      <div class="hero-inner">
+        <span class="badge">WORKSHOP · MỔ APP AI THẬT</span>
+        <h1>MoMo — Moni · App Teardown</h1>
+        <p>
+          Tìm chỗ product gãy trong workflow thật → viết thành quyết định
+          product.
+        </p>
+        <div class="meta">
+          <span>👤 Đỗ Thị Huyền — 2A202600880</span>
+          <span>📱 MoMo / Moni — Trợ thủ tài chính</span>
+          <span>📦 Output: finding note + sketch as-is / to-be</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="wrap">
+      <!-- 1 -->
+      <section class="card">
+        <h2><span class="num">1</span> Sản phẩm đã chọn</h2>
+        <p class="sub">
+          Mục tiêu không phải chấm "UI đẹp hay xấu" — mà dùng sản phẩm thật như
+          một bài needfinding.
+        </p>
+        <table>
+          <tr>
+            <th>Sản phẩm</th>
+            <th>AI feature</th>
+            <th>Cách truy cập</th>
+          </tr>
+          <tr>
+            <td><b>MoMo — Moni</b></td>
+            <td>
+              Trợ thủ tài chính: tổng hợp &amp; phân tích chi tiêu, trả lời câu
+              hỏi về dòng tiền cá nhân bằng ngôn ngữ tự nhiên
+            </td>
+            <td>App MoMo → tab "Moni / Quản lý chi tiêu"</td>
+          </tr>
+        </table>
+        <div class="impact">
+          <b>Lý do chọn:</b> Moni hứa biến dữ liệu giao dịch thành insight tài
+          chính, nên dễ kiểm tra xem AI có thật sự "hiểu" câu hỏi và trả lời
+          đúng mức sâu user cần hay không.
+        </div>
+      </section>
+
+      <!-- 2 -->
+      <section class="card">
+        <h2><span class="num">2</span> Dùng thử: promise vs reality</h2>
+        <p class="sub">Product hứa gì — và khi dùng thật thì gãy ở đâu?</p>
+
+        <div class="kv">
+          <div class="k">Product hứa gì?</div>
+          <div class="v">
+            Tổng hợp toàn bộ giao dịch, cho thấy <b>bức tranh chi tiêu</b>, và
+            biến dữ liệu thành <b>insight</b> chứ không chỉ con số tổng.
+          </div>
+          <div class="k">User nào được hứa?</div>
+          <div class="v">
+            Người dùng MoMo muốn hiểu <b>tiền đi đâu</b> mà không phải tự
+            cộng/lọc giao dịch.
+          </div>
+          <div class="k">Mình kỳ vọng AI làm gì?</div>
+          <div class="v">
+            Hiểu intent "nhiều nhất vào gì" = <b>xếp hạng theo danh mục</b>; câu
+            mơ hồ thì <b>hỏi lại tiêu chí</b>; khi yêu cầu chi tiết thì đưa
+            <b>breakdown từng nhóm + số tiền</b>.
+          </div>
+        </div>
+
+        <h3>🔎 Evidence — hội thoại thật với Moni (4 paths)</h3>
+        <div class="chat">
+          <div class="turn-label">① HAPPY — hỏi tổng quan</div>
+          <div class="msg user">
+            <div class="av">U</div>
+            <div class="bub">Tháng vừa rồi tôi đã chi tiêu bao nhiêu?</div>
+          </div>
+          <div class="msg bot">
+            <div class="av">M</div>
+            <div class="bub good">
+              Tổng chi tiêu: <b>5.472.000đ</b> · Số giao dịch: <b>16</b> · Trung
+              bình mỗi ngày: <b>176.516đ</b>
+            </div>
+          </div>
+          <div class="tagline ok">✓ Đúng &amp; đủ cho câu hỏi tổng quan</div>
+
+          <div class="turn-label">② LOW-CONFIDENCE — câu mơ hồ</div>
+          <div class="msg user">
+            <div class="av">U</div>
+            <div class="bub">Tôi tiêu nhiều không?</div>
+          </div>
+          <div class="msg bot">
+            <div class="av">M</div>
+            <div class="bub flag">So với tháng trước, bạn tiêu nhiều hơn.</div>
+          </div>
+          <div class="tagline warn">
+            ⚠ Tự quyết mốc so sánh — không hỏi lại (tháng trước? ngân sách? thu
+            nhập?)
+          </div>
+
+          <div class="turn-label">③ FAILURE — cần tổng hợp theo danh mục</div>
+          <div class="msg user">
+            <div class="av">U</div>
+            <div class="bub">Tháng 5 tôi chi tiêu nhiều nhất vào gì?</div>
+          </div>
+          <div class="msg bot">
+            <div class="av">M</div>
+            <div class="bub flag">
+              Tổng chi tiêu · Số giao dịch · Trung bình mỗi ngày…
+            </div>
+          </div>
+          <div class="tagline bad">
+            ✗ Không trả lời câu hỏi — trả số tổng quan
+          </div>
+          <div class="msg user">
+            <div class="av">U</div>
+            <div class="bub">Hiển thị chi tiết từng nhóm với số tiền.</div>
+          </div>
+          <div class="msg bot">
+            <div class="av">M</div>
+            <div class="bub flag">
+              Tổng chi tiêu · Số giao dịch · Trung bình mỗi ngày…
+            </div>
+          </div>
+          <div class="tagline bad">✗ LẶP LẠI số tổng quan, không breakdown</div>
+          <div class="msg user">
+            <div class="av">U</div>
+            <div class="bub">Nhóm du lịch hết bao nhiêu tiền?</div>
+          </div>
+          <div class="msg bot">
+            <div class="av">M</div>
+            <div class="bub">
+              Du lịch: <b>0đ</b> — còn Di chuyển: <b>622.000đ</b>
+            </div>
+          </div>
+          <div class="tagline warn">
+            ➜ Dữ liệu CÓ tồn tại — nhưng AI không tự tổng hợp/xếp hạng được
+          </div>
+
+          <div class="turn-label">④ CORRECTION — user báo sai nhóm</div>
+          <div class="msg user">
+            <div class="av">U</div>
+            <div class="bub">Khoản 622.000đ này không phải của di chuyển.</div>
+          </div>
+          <div class="msg bot">
+            <div class="av">M</div>
+            <div class="bub good">
+              Có một giao dịch thuộc nhóm Di chuyển:<br />🚆 Thanh toán vé tàu
+              hỏa — <b>622.000đ</b>
+            </div>
+          </div>
+          <div class="tagline ok">
+            ✓ Không cãi · ✓ không bịa · ✓ show evidence · ✓ cho user xác minh
+          </div>
+        </div>
+
+        <div class="conclude">
+          <b>Điều này cho thấy:</b> Moni trả tốt câu hỏi tổng quan và câu hỏi về
+          <b>một</b> danh mục, nhưng <b>không tự tổng hợp/xếp hạng</b> nhiều
+          danh mục. Đáng chú ý: <b>dữ liệu đã tồn tại</b> (Du lịch 0đ, Di chuyển
+          622.000đ) — lỗi nằm ở <b>intent + tổng hợp</b>, không phải thiếu dữ
+          liệu.
+        </div>
+
+        <div class="ev-grid">
+          <div class="ev">
+            <span class="tag">E1 · Happy</span>
+            <p class="obs">
+              Hỏi tổng chi → trả <b>5.472.000đ / 16 GD / TB 176.516đ/ngày</b>.
+            </p>
+            <div class="src">Self-use, screenshot</div>
+          </div>
+          <div class="ev">
+            <span class="tag">E2 · Low-conf</span>
+            <p class="obs">
+              "Tôi tiêu nhiều không?" → tự quyết "nhiều hơn tháng trước",
+              <b>không hỏi lại tiêu chí</b>.
+            </p>
+            <div class="src">Prompt đã thử</div>
+          </div>
+          <div class="ev">
+            <span class="tag">E3 · Failure</span>
+            <p class="obs">
+              "Nhiều nhất vào gì" + "chi tiết từng nhóm" → cả 2 lượt chỉ trả
+              <b>số tổng quan</b>.
+            </p>
+            <div class="src">Prompt đã thử</div>
+          </div>
+          <div class="ev">
+            <span class="tag">E4 · Đối chứng</span>
+            <p class="obs">
+              Hỏi riêng từng nhóm → Du lịch 0đ, Di chuyển 622.000đ ⇒
+              <b>dữ liệu có sẵn</b> nhưng không được tổng hợp.
+            </p>
+            <div class="src">Hành vi quan sát</div>
+          </div>
+          <div class="ev">
+            <span class="tag">E5 · Correction</span>
+            <p class="obs">
+              Báo sai nhóm → Moni show <b>"vé tàu hỏa 622.000đ"</b> để xác minh,
+              không bịa.
+            </p>
+            <div class="src">Self-use, screenshot</div>
+          </div>
+        </div>
+
+        <div class="impact" style="margin-top: 14px">
+          📌 <b>Evidence ngoài self-use (cần bổ sung):</b> 1 quote review CH
+          Play / App Store về "Moni trả lời chung chung / không chi tiết" để
+          củng cố — tránh "tự bịa".
+        </div>
+      </section>
+
+      <!-- 3 -->
+      <section class="card">
+        <h2><span class="num">3</span> Bốn paths (test thật)</h2>
+        <p class="sub">Trạng thái thực tế của từng path khi dùng Moni.</p>
+        <div class="paths">
+          <div class="path ok">
+            <h4>
+              <span class="dot"></span>Happy
+              <span class="status ok">✅ ĐẠT</span>
+            </h4>
+            <p>
+              "Tháng vừa rồi tôi chi tiêu bao nhiêu?" → Moni trả đúng &amp; đủ:
+              5.472.000đ / 16 GD / TB 176.516đ/ngày.
+            </p>
+          </div>
+          <div class="path warn">
+            <h4>
+              <span class="dot"></span>Low-confidence
+              <span class="status warn">⚠️ CHƯA ĐẠT</span>
+            </h4>
+            <p>
+              "Tôi tiêu nhiều không?" → Moni tự quyết "so với tháng trước tiêu
+              nhiều hơn", không hỏi lại mốc so sánh dù câu hỏi mơ hồ.
+            </p>
+          </div>
+          <div class="path bad">
+            <h4>
+              <span class="dot"></span>Failure
+              <span class="status bad">❌ FAIL</span>
+            </h4>
+            <p>
+              "Nhiều nhất vào gì" + "chi tiết từng nhóm" → chỉ trả số tổng quan.
+              Nhưng hỏi lẻ thì biết Du lịch 0đ, Di chuyển 622.000đ ⇒ có data,
+              không tổng hợp.
+            </p>
+          </div>
+          <div class="path ok">
+            <h4>
+              <span class="dot"></span>Correction
+              <span class="status warn">🟡 ĐẠT 1 PHẦN</span>
+            </h4>
+            <p>
+              Báo sai nhóm → Moni show bằng chứng "vé tàu hỏa 622.000đ" để xác
+              minh. Không cãi, không bịa. Còn thiếu: cho sửa nhãn ngay + xác
+              nhận học lại.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4 -->
+      <section class="card">
+        <h2><span class="num">4</span> Finding → quyết định product</h2>
+        <p class="sub">
+          Không viết "bot ngu" — viết theo: trigger → failure → impact → layer →
+          cách sửa.
+        </p>
+
+        <h3>① Ưu tiên 1 — Có dữ liệu nhưng không tổng hợp thành insight</h3>
+        <div class="finding">
+          <span class="lbl">FINDING CHÍNH · INTENT + DATA-TOOL</span>Khi user
+          hỏi "tháng 5 tôi chi tiêu nhiều nhất vào gì?", AI hiểu thành yêu cầu
+          thống kê tổng quan và chỉ trả tổng chi/số giao dịch/TB ngày, dù khi
+          hỏi riêng từng nhóm thì Moni vẫn biết số liệu (Du lịch 0đ, Di chuyển
+          622.000đ), hậu quả là user không nhận được câu trả lời cho intent thật
+          (xếp hạng theo danh mục) mặc dù dữ liệu đã tồn tại trong hệ thống. Lỗi
+          thuộc layer
+          <span class="pill-layer">Intent + Data-Tool (orchestration)</span>,
+          không phải thiếu dữ liệu. Nên sửa bằng: map intent "nhiều nhất / vào
+          gì / từng nhóm" -> gọi truy vấn group-by danh mục, trả về top 3-5 nhóm
+          kèm số tiền và %, rồi mới đưa số tổng quan như phần phụ. Test case:
+          "chi tiêu nhiều nhất vào gì" phải trả danh sách nhóm sắp xếp giảm dần.
+        </div>
+
+        <h3>② Ưu tiên 2 — Câu mơ hồ bị tự quyết</h3>
+        <div class="finding">
+          <span class="lbl">FINDING PHỤ · INTENT + UX RECOVERY</span>Khi user
+          hỏi "tôi tiêu nhiều không?" (mơ hồ: so với tháng trước/thu nhập/ngân
+          sách), AI tự chọn một mốc so sánh ("so với tháng trước bạn tiêu nhiều
+          hơn") mà không hỏi lại, hậu quả là kết luận có thể lệch ý user và user
+          không biết con số dựa trên mốc nào. Lỗi thuộc layer
+          <span class="pill-layer">Intent + UX Recovery</span>. Nên sửa bằng
+          low-confidence path: hỏi lại "Bạn muốn so với: (1) tháng trước (2)
+          ngân sách (3) thu nhập?" hoặc trả nhanh cả 2-3 mốc kèm nhãn rõ ràng để
+          user tự đọc.
+        </div>
+
+        <h3>③ Điểm tốt cần GIỮ — Correction an toàn</h3>
+        <div class="finding good">
+          <span class="lbl">GIỮ TRONG SPEC · CORRECTION</span>Khi user báo
+          "khoản 622.000đ này không phải của di chuyển", AI không cãi và không
+          bịa, mà hiển thị bằng chứng "Thanh toán vé tàu hỏa 622.000đ" để user
+          xác minh. Đây là hành vi đúng của Correction path: minh bạch evidence
+          + để human giữ quyền quyết định. Cần GIỮ, và bổ sung: cho user sửa
+          nhãn ngay tại đó + xác nhận correction được lưu/học lại.
+        </div>
+      </section>
+
+      <!-- 5 -->
+      <section class="card">
+        <h2><span class="num">5</span> Sketch as-is / to-be</h2>
+        <p class="sub">
+          Nhìn vào là hiểu: user làm gì, AI làm gì, lúc không chắc thì sao, lúc
+          user sửa thì sao.
+        </p>
+        <div class="sketch">
+          AS-IS (flow hiện tại) TO-BE (flow đề xuất)
+          -------------------------------------
+          ------------------------------------- User: "Tháng 5 tiêu nhiều nhất
+          vào gì?" User: "Tháng 5 tiêu nhiều nhất vào gì?" | | AI hiểu = thống
+          kê tổng quan AI nhận intent = XẾP HẠNG THEO DANH MỤC ◀ sửa intent | ✗
+          điểm gãy 1 | Trả: tổng chi + số GD + TB/ngày Gọi truy vấn GROUP-BY
+          danh mục | (dữ liệu vốn đã có sẵn) User: "Chi tiết từng nhóm với số
+          tiền" | | Trả: TOP 3-5 nhóm + số tiền + % ──┐ AI LẶP LẠI số tổng quan
+          | │ tổng quan | ✗ điểm gãy 2 (có data, | │ làm phần phụ | không tổng
+          hợp) User: "tôi tiêu nhiều không?" | User hỏi lẻ từng nhóm mới ra số
+          AI HỎI LẠI mốc so sánh ◀ sửa low-confidence | ✗ điểm gãy 3 (hỏi nhiều
+          lượt) (tháng trước / ngân sách / thu nhập) ▼ | Bỏ cuộc, mất niềm tin
+          User báo sai nhóm → show evidence + cho SỬA NHÃN ◀ giữ + nâng
+          correction ▼ User đạt mục tiêu chỉ trong 1 lượt
+        </div>
+        <div class="legend">
+          <span><b>✗ điểm gãy 1</b> — intent hiểu sai thành tổng quan</span>
+          <span><b>✗ điểm gãy 2</b> — có data nhưng không tổng hợp</span>
+          <span><b>✗ điểm gãy 3</b> — user phải hỏi nhiều lượt</span>
+        </div>
+      </section>
+
+      <!-- 6 -->
+      <section class="card">
+        <h2><span class="num">6</span> Tự kiểm trước khi nộp</h2>
+        <ul class="check">
+          <li>
+            <span class="box">✔</span> Có observation cụ thể (5 evidence E1–E5
+            từ test thật trên Moni; kế hoạch bổ sung review ngoài).
+          </li>
+          <li>
+            <span class="box">✔</span> Có đủ 4 paths với trạng thái thật: Happy
+            ✅, Low-confidence ⚠️, Failure ❌, Correction 🟡.
+          </li>
+          <li>
+            <span class="box">✔</span> Finding viết thành product decision (1
+            chính + 2 phụ, theo layer + cách sửa + test case).
+          </li>
+          <li>
+            <span class="box">✔</span> Sketch có as-is và to-be, đánh dấu 3 điểm
+            gãy và path đã sửa.
+          </li>
+        </ul>
+        <div class="impact">
+          <b>Finding này đổi gì trong SPEC:</b> SPEC phải có (1)
+          <b>intent-mapping</b> cho câu hỏi phân tích ("nhiều nhất/vào gì/từng
+          nhóm" → truy vấn group-by danh mục) trả về top nhóm + số tiền, (2)
+          <b>low-confidence path</b> hỏi lại mốc so sánh cho câu mơ hồ, (3) giữ
+          <b>Correction kiểu show-evidence</b> và bổ sung sửa nhãn + lưu
+          correction — đây là build slice trọng tâm cho prototype Day 06.
+        </div>
+      </section>
+
+      <footer>
+        Day 05 Lab — Batch 02 · AI Product Kickoff Sprint · MoMo Moni teardown
+      </footer>
+    </div>
+  </body>
+</html>
