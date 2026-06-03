@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>App Teardown — Moni (MoMo)</title>
+<style>
+  :root{
+    --pink:#d82d8b; --pink-dark:#a91069; --pink-soft:#fce4f1; --pink-line:#f6c6e0;
+    --ink:#1d1b22; --muted:#6b6577; --bg:#faf7fb;
+    --good:#1a9d6b; --good-soft:#e4f7ee; --bad:#d83a4a; --bad-soft:#fdeaec;
+    --warn:#c77700; --warn-soft:#fff3e0;
+    --shadow:0 6px 24px rgba(168,16,105,.10);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+    line-height:1.65; font-size:16px;
+  }
+  .wrap{max-width:920px; margin:0 auto; padding:0 20px 80px;}
+
+  /* Hero */
+  header.hero{
+    background:linear-gradient(135deg,#e83e9c 0%,#a91069 100%);
+    color:#fff; padding:54px 20px 60px; text-align:center;
+    box-shadow:var(--shadow);
+  }
+  .hero .badge{
+    display:inline-block; background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.35);
+    padding:5px 16px; border-radius:999px; font-size:13px; letter-spacing:.5px; margin-bottom:18px;
+    backdrop-filter:blur(4px);
+  }
+  .hero h1{margin:0 0 10px; font-size:38px; font-weight:800; letter-spacing:-.5px;}
+  .hero p.sub{margin:0; font-size:18px; opacity:.95; font-weight:300;}
+  .hero .meta{
+    margin:26px auto 0; display:flex; flex-wrap:wrap; gap:10px 26px; justify-content:center;
+    font-size:14px; opacity:.95;
+  }
+  .hero .meta b{font-weight:600;}
+
+  /* Cards */
+  section.card{
+    background:#fff; border:1px solid var(--pink-line); border-radius:18px;
+    padding:30px 32px; margin-top:26px; box-shadow:var(--shadow);
+  }
+  .num{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:34px; height:34px; border-radius:50%; background:var(--pink); color:#fff;
+    font-weight:700; font-size:16px; margin-right:12px; flex:0 0 auto;
+  }
+  h2.sec{display:flex; align-items:center; font-size:23px; margin:0 0 6px; color:var(--ink);}
+  .sec-note{color:var(--muted); font-size:14.5px; margin:0 0 20px 46px;}
+
+  h3{font-size:17px; margin:24px 0 10px; color:var(--pink-dark);}
+
+  /* Promise/Reality split */
+  .split{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+  .pane{border-radius:14px; padding:18px 20px;}
+  .pane.promise{background:#eef4ff; border:1px solid #cfe0ff;}
+  .pane.reality{background:var(--bad-soft); border:1px solid #f4c5cb;}
+  .pane h4{margin:0 0 10px; font-size:15px; text-transform:uppercase; letter-spacing:.6px;}
+  .pane.promise h4{color:#2c5cc5;}
+  .pane.reality h4{color:var(--bad);}
+  .pane ul{margin:0; padding-left:18px;} .pane li{margin:6px 0;}
+
+  /* Table */
+  table{width:100%; border-collapse:collapse; margin:8px 0; font-size:14.5px;}
+  th,td{text-align:left; padding:11px 13px; border-bottom:1px solid #efe6ef; vertical-align:top;}
+  th{background:var(--pink-soft); color:var(--pink-dark); font-weight:700; font-size:13.5px;}
+  tr:last-child td{border-bottom:none;}
+  td.path{font-weight:700; white-space:nowrap;}
+  .quote{background:#fff7fb; border-left:3px solid var(--pink); padding:2px 10px; border-radius:0 6px 6px 0; font-style:italic; color:#5a3d50;}
+
+  .tag{display:inline-block; font-size:12px; font-weight:700; padding:2px 9px; border-radius:6px; margin-right:6px;}
+  .tag.miss{background:var(--bad-soft); color:var(--bad);}
+  .tag.ok{background:var(--good-soft); color:var(--good);}
+
+  /* Screenshots */
+  .shots{display:grid; grid-template-columns:1fr 1fr; gap:22px; margin-top:18px;}
+  figure{margin:0; text-align:center;}
+  figure img{
+    width:100%; max-width:330px; border-radius:14px; border:1px solid var(--pink-line);
+    box-shadow:0 8px 30px rgba(168,16,105,.18); cursor:zoom-in; transition:transform .2s;
+  }
+  figure img:hover{transform:scale(1.02);}
+  figcaption{margin-top:10px; font-size:13.5px; color:var(--muted);}
+  figcaption b{color:var(--ink);}
+
+  /* Finding boxes */
+  .finding{
+    border-radius:14px; padding:4px 0; margin:16px 0; overflow:hidden;
+    border:1px solid var(--pink-line);
+  }
+  .finding .ftitle{
+    background:var(--pink-soft); color:var(--pink-dark); font-weight:700;
+    padding:12px 18px; font-size:15.5px; margin:-4px 0 0;
+  }
+  .finding pre{
+    margin:0; padding:18px; background:#1d1b22; color:#f3e9ef;
+    font-family:"Cascadia Code",Consolas,Menlo,monospace; font-size:13px; line-height:1.7;
+    overflow-x:auto; white-space:pre-wrap;
+  }
+  .finding pre .hl{color:#ff8fc7; font-weight:700;}
+  .finding pre .layer{color:#ffd479;}
+  .finding pre .fix{color:#8fe3b6;}
+
+  /* Flow as-is / to-be */
+  .flows{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  .flow{border-radius:14px; padding:18px 16px;}
+  .flow.asis{background:var(--bad-soft); border:1px solid #f4c5cb;}
+  .flow.tobe{background:var(--good-soft); border:1px solid #bfe9d4;}
+  .flow h4{margin:0 0 14px; font-size:15px; text-align:center;}
+  .flow.asis h4{color:var(--bad);} .flow.tobe h4{color:var(--good);}
+  .step{
+    background:#fff; border-radius:10px; padding:10px 12px; font-size:13.5px;
+    box-shadow:0 1px 4px rgba(0,0,0,.06); position:relative;
+  }
+  .arrow{text-align:center; color:var(--muted); font-size:16px; line-height:1; margin:5px 0;}
+  .brk{border-left:4px solid var(--bad);} .fix2{border-left:4px solid var(--good);}
+  .step small{display:block; margin-top:3px; font-weight:700;}
+  .brk small{color:var(--bad);} .fix2 small{color:var(--good);}
+
+  /* Checklist */
+  ul.check{list-style:none; padding:0; margin:0;}
+  ul.check li{padding:8px 0 8px 34px; position:relative; border-bottom:1px dashed #efe1ec;}
+  ul.check li:last-child{border-bottom:none;}
+  ul.check li.done::before{content:"✓"; position:absolute; left:4px; top:7px; width:22px;height:22px;
+    background:var(--good); color:#fff; border-radius:6px; text-align:center; line-height:22px; font-size:14px; font-weight:700;}
+  ul.check li.todo::before{content:"!"; position:absolute; left:4px; top:7px; width:22px;height:22px;
+    background:var(--warn); color:#fff; border-radius:6px; text-align:center; line-height:22px; font-size:14px; font-weight:700;}
+
+  .spec-final{
+    background:linear-gradient(135deg,#fff3f9,#fce4f1); border:1px dashed var(--pink);
+    border-radius:14px; padding:20px 22px; margin-top:18px; font-size:15px;
+  }
+  .spec-final b{color:var(--pink-dark);}
+
+  footer{text-align:center; color:var(--muted); font-size:13px; margin-top:40px;}
+
+  /* Lightbox */
+  .lb{position:fixed; inset:0; background:rgba(20,8,16,.88); display:none; align-items:center; justify-content:center; z-index:99; padding:30px; cursor:zoom-out;}
+  .lb.open{display:flex;}
+  .lb img{max-width:95%; max-height:92vh; border-radius:12px; box-shadow:0 10px 50px rgba(0,0,0,.6);}
+
+  @media (max-width:720px){
+    .split,.shots,.flows{grid-template-columns:1fr;}
+    .hero h1{font-size:28px;} .wrap{padding:0 14px 60px;} section.card{padding:22px 18px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="badge">DAY 05 · INDIVIDUAL WORKSHOP · BATCH 02</div>
+  <h1>App Teardown — Moni</h1>
+  <p class="sub">Mổ trợ thủ tài chính AI của MoMo như một bài needfinding</p>
+  <div class="meta">
+    <span>👤 <b>Người làm:</b> <span style="opacity:.85">[2A202600853 — Huỳnh An Nghiệp]</span></span>
+    <span>📅 <b>Ngày:</b> 03/06/2026</span>
+    <span>📱 <b>App:</b> Moni (MoMo)</span>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- 1 -->
+  <section class="card">
+    <h2 class="sec"><span class="num">1</span>Chọn sản phẩm</h2>
+    <table>
+      <tr><th style="width:160px">Mục</th><th>Nội dung</th></tr>
+      <tr><td><b>Sản phẩm</b></td><td><b>Moni</b> — trợ thủ tài chính cá nhân tích hợp trong MoMo</td></tr>
+      <tr><td><b>AI feature</b></td><td>Phân tích chi tiêu theo nhóm, chatbot trả lời câu hỏi tài chính, gợi ý/cảnh báo theo lịch sử giao dịch</td></tr>
+      <tr><td><b>Vì sao chọn</b></td><td>App tôi đã có sẵn lịch sử giao dịch thật → dữ liệu đủ để Moni phân tích, dễ tìm điểm gãy trong workflow thực tế thay vì test rỗng</td></tr>
+    </table>
+  </section>
+
+  <!-- 2 -->
+  <section class="card">
+    <h2 class="sec"><span class="num">2</span>Dùng thử — Promise vs Reality</h2>
+    <p class="sec-note">Kỳ test 01/06/2026 → 03/06/2026, giai đoạn tôi gần như không phát sinh giao dịch chi tiêu nào.</p>
+
+    <div class="split">
+      <div class="pane promise">
+        <h4>✦ Promise</h4>
+        <ul>
+          <li>"Hiểu" chi tiêu, tự phân loại giao dịch theo nhóm.</li>
+          <li>Trả lời câu hỏi tài chính bằng ngôn ngữ tự nhiên.</li>
+          <li>User MoMo biết "tháng này tiêu vào đâu" mà không phải tự ghi chép.</li>
+        </ul>
+      </div>
+      <div class="pane reality">
+        <h4>✦ Reality</h4>
+        <ul>
+          <li><b>Bịa số liệu</b>: báo 13.000.000đ chi tiêu không tồn tại.</li>
+          <li><b>Tự mâu thuẫn</b>: 9 giao dịch → ngay sau lại 0 giao dịch.</li>
+          <li>Giọng chắc nịch, không một dấu hiệu nghi ngờ.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Bằng chứng — prompt &amp; phản hồi</h3>
+    <table>
+      <tr><th style="width:30px">#</th><th style="width:33%">Prompt tôi gõ</th><th>Moni phản hồi</th><th style="width:24%">Điểm gãy</th></tr>
+      <tr>
+        <td>1</td>
+        <td>"tháng này tôi tiêu nhiều tiền nhất vào đâu?"</td>
+        <td><span class="quote">"…chi tiêu tổng cộng: <b>13.000.000đ</b> · Số giao dịch: <b>9</b> · Trung bình mỗi ngày: <b>4.333.333đ</b>…"</span></td>
+        <td><span class="tag miss">HALLUCINATION</span> Không hề có 13 triệu chi tiêu hay 9 giao dịch.</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>"chi tiêu linh tinh của tôi là gì?"</td>
+        <td><span class="quote">"…bạn <b>chưa có khoản chi tiêu nào</b>… Tổng chi linh tinh: <b>0đ</b> · Số giao dịch: <b>0</b>…"</span></td>
+        <td><span class="tag miss">MÂU THUẪN</span> Trái ngược câu 1 trong cùng phiên.</td>
+      </tr>
+    </table>
+
+    <p style="background:var(--warn-soft);border:1px solid #f0d9a8;border-radius:10px;padding:12px 16px;font-size:14.5px;">
+      <b>Đối chiếu sự thật (Lịch sử GD):</b> Tháng 6/2026 chỉ có "Tiền lời Túi Thần Tài" <b>+24đ</b> (02/06), <b>+24đ</b> (01/06), <b>+11đ</b> (31/05) — đều là <b>thu nhập vài chục đồng</b>, không có giao dịch chi tiêu nào, càng không có 13.000.000đ.
+    </p>
+
+    <div class="shots">
+      <figure>
+        <img src="./evidence/screenshot.jpg" alt="Hội thoại Moni bịa số liệu" onclick="zoom(this.src)">
+        <figcaption><b>Screenshot 1.</b> Hội thoại Moni — số liệu 13 triệu được bịa ra với giọng chắc chắn.</figcaption>
+      </figure>
+      <figure>
+        <img src="./evidence/screenshot_2.jpg" alt="Lịch sử giao dịch thật" onclick="zoom(this.src)">
+        <figcaption><b>Screenshot 2.</b> Lịch sử GD thật — tháng 6 chỉ có vài chục đồng tiền lời, không có chi tiêu.</figcaption>
+      </figure>
+      <figure>
+        <img src="./evidence/happycase.jpg" alt="Moni trả lời đúng câu hỏi kiến thức" onclick="zoom(this.src)">
+        <figcaption><b>Screenshot 3 (Happy).</b> Câu hỏi kiến thức "túi thần tài có chức năng gì" → trả lời đúng, đủ, có ích + widget 👍/👎.</figcaption>
+      </figure>
+      <figure>
+        <img src="./evidence/low_confidence.jpg" alt="Moni khẳng định lại số liệu bịa khi bị phản đối" onclick="zoom(this.src)">
+        <figcaption><b>Screenshot 4 (Low-conf + Correction).</b> User nói "sai rồi, không hề tiêu 13 triệu" → Moni vẫn khẳng định 13.000.000đ và đổ lỗi cho dữ liệu của user.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="card">
+    <h2 class="sec"><span class="num">3</span>Bốn paths</h2>
+    <table>
+      <tr><th style="width:130px">Path</th><th>Quan sát ở Moni (từ evidence thật)</th></tr>
+      <tr>
+        <td class="path"><span class="tag ok">OK</span>Happy</td>
+        <td>Với câu hỏi <b>kiến thức chung</b> ("túi thần tài có chức năng gì"), Moni trả lời <b>đúng, đầy đủ, có ích</b> (lãi 4%/năm, rút bất cứ lúc nào, sản phẩm của Finsight) và có widget <i>"Câu trả lời có hữu ích không? 👍/👎"</i>. <b>Insight:</b> điểm gãy KHÔNG phải AI dở toàn diện — nó chỉ hỏng ở phần <b>dữ liệu cá nhân</b> (xem Failure). <i>(ảnh 3)</i></td>
+      </tr>
+      <tr>
+        <td class="path">Low-confidence</td>
+        <td><span class="tag miss">KHÔNG CÓ</span> Khi không có dữ liệu, đáng lẽ phải nói "chưa thấy giao dịch chi nào". Thay vào đó Moni bịa con số chính xác đến từng đồng (4.333.333đ/ngày). Khi user <b>phản đối thẳng</b> ("sai rồi, tôi không hề tiêu 13 triệu"), Moni <b>vẫn khẳng định lại 13.000.000đ</b> thay vì hạ độ tin cậy → zero self-doubt. <i>(ảnh 4)</i></td>
+      </tr>
+      <tr>
+        <td class="path">Failure</td>
+        <td>User <b>chỉ phát hiện sai nhờ tự mở Lịch sử GD đối chiếu thủ công</b>. Câu trả lời không có tín hiệu cảnh báo, nguồn dữ liệu, hay link "xem 9 giao dịch này". Lỗi <b>lặp lại ở 2 phiên test</b> → là lỗi hệ thống, không ngẫu nhiên.</td>
+      </tr>
+      <tr>
+        <td class="path">Correction</td>
+        <td><span class="tag miss">HỎNG</span> Khi user nói rõ "sai rồi", Moni không sửa mà còn <b>đổ ngược</b> ("có thể một số giao dịch bị ghi nhầm") — bám chặt số bịa và ám chỉ <b>dữ liệu thật của user mới sai</b> (gaslighting). Có 👍/👎 nhưng không sửa được con số sai trong hội thoại. <i>(ảnh 4)</i></td>
+      </tr>
+    </table>
+  </section>
+
+  <!-- 4 -->
+  <section class="card">
+    <h2 class="sec"><span class="num">4</span>Finding viết thành quyết định product</h2>
+    <p class="sec-note">Công thức: Khi user [trigger] → AI [failure] → hậu quả [impact] → lỗi layer [...] → sửa bằng [...].</p>
+
+    <div class="finding">
+      <div class="ftitle">⚑ Finding chính — Hallucination số liệu tài chính</div>
+<pre>Khi user hỏi tổng quan chi tiêu trong kỳ mà thực tế gần như không có giao dịch chi,
+Moni <span class="hl">bịa ra con số cụ thể</span> (13.000.000đ / 9 GD / 4.333.333đ một ngày) thay vì
+nói thẳng "chưa có dữ liệu chi tiêu" — và trình bày với giọng chắc chắn, không cờ độ tin cậy.
+Hậu quả: user có thể ra quyết định tài chính dựa trên số liệu không có thật, hoặc mất
+hoàn toàn niềm tin; tệ hơn là câu sau tự mâu thuẫn (0 giao dịch).
+<span class="layer">Lỗi thuộc layer: Data-Tool (không grounded vào lịch sử GD) + Safety/Trust + thiếu Low-confidence path.</span>
+<span class="fix">Nên sửa bằng:
+  (1) Bắt buộc grounding — mọi con số truy ngược về giao dịch thật, kèm link "xem N giao dịch";
+  (2) Low-confidence path — không tìm thấy giao dịch thì trả "Mình chưa thấy khoản chi nào";
+  (3) Test case bắt buộc: "kỳ rỗng" phải ra 0đ, không được ra số dương.</span></pre>
+    </div>
+
+    <div class="finding">
+      <div class="ftitle">⚑ Finding phụ — Correction bị bỏ qua, AI bám số sai khi bị phản đối</div>
+<pre>Khi user nói thẳng "sai rồi, tôi không hề tiêu 13 triệu",
+Moni KHÔNG sửa mà <span class="hl">khẳng định lại đúng con số bịa</span> (13.000.000đ / 9 GD),
+còn đổ ngược rằng "có thể một số giao dịch bị ghi nhầm hoặc phân loại sai".
+Hậu quả: correction của user bị bỏ qua, AI ngầm đổ lỗi cho dữ liệu thật của user
+(gaslighting), và lỗi không bao giờ được ghi nhận để cải thiện.
+<span class="layer">Lỗi thuộc layer: UX Recovery + Safety/Trust + Data-Tool (không có learning loop).</span>
+<span class="fix">Nên sửa bằng:
+  (1) Khi user báo sai, AI BẮT BUỘC truy lại nguồn trước khi trả lời, ưu tiên giả định "mình có thể sai";
+  (2) Link "xem N giao dịch này" dưới mỗi con số (kiểm 1 chạm);
+  (3) Nút "Số liệu chưa đúng?" để log correction cho team cải thiện.</span></pre>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="card">
+    <h2 class="sec"><span class="num">5</span>Sketch As-is / To-be</h2>
+    <div class="flows">
+      <div class="flow asis">
+        <h4>AS-IS · flow hiện tại</h4>
+        <div class="step">User hỏi "tháng này tiêu nhiều nhất vào đâu?"</div>
+        <div class="arrow">▼</div>
+        <div class="step">Truy vấn dữ liệu → KHÔNG có giao dịch chi trong kỳ</div>
+        <div class="arrow">▼</div>
+        <div class="step brk">Thay vì "0đ", Moni BỊA 13.000.000đ / 9 GD<small>🔴 Gãy 1: hallucination, không grounded</small></div>
+        <div class="arrow">▼</div>
+        <div class="step brk">Trình bày chắc nịch, không link kiểm chứng<small>🔴 Gãy 2: thiếu low-confidence path</small></div>
+        <div class="arrow">▼</div>
+        <div class="step brk">Câu sau lại trả "0đ / 0 GD"<small>🔴 Gãy 3: tự mâu thuẫn</small></div>
+        <div class="arrow">▼</div>
+        <div class="step brk">User chỉ biết sai khi tự mở Lịch sử GD<small>🔴 Gãy 4: không có recovery</small></div>
+      </div>
+      <div class="flow tobe">
+        <h4>TO-BE · flow đề xuất</h4>
+        <div class="step">User hỏi "tháng này tiêu nhiều nhất vào đâu?"</div>
+        <div class="arrow">▼</div>
+        <div class="step fix2">Truy vấn BẮT BUỘC grounded vào lịch sử GD thật<small>✅ chống hallucination</small></div>
+        <div class="arrow">▼</div>
+        <div class="step fix2">Có GD → trả số liệu + link "xem N giao dịch"<small>✅ kiểm chứng 1 chạm</small></div>
+        <div class="arrow">▼</div>
+        <div class="step fix2">Không có GD → "Mình chưa thấy khoản chi nào trong kỳ 01–03/06"<small>✅ không bịa, hỏi lại</small></div>
+        <div class="arrow">▼</div>
+        <div class="step fix2">Mỗi con số kèm nút "Số liệu chưa đúng?"<small>✅ UX recovery + log</small></div>
+        <div class="arrow">▼</div>
+        <div class="step fix2">Guardrail + test "kỳ rỗng = 0đ" chạy trước khi trả lời<small>✅ không bao giờ ra số dương khi rỗng</small></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="card">
+    <h2 class="sec"><span class="num">6</span>Tự kiểm &amp; chốt SPEC</h2>
+    <ul class="check">
+      <li class="done">Có screenshot / observation cụ thể (2 ảnh: hội thoại Moni + Lịch sử GD đối chứng).</li>
+      <li class="done">Đủ 4 paths — ghi rõ Low-confidence và Correction <b>không tồn tại</b> (cũng là finding).</li>
+      <li class="done">Finding viết thành <b>product decision</b> theo công thức, không chỉ là "bot ngu".</li>
+      <li class="done">Sketch có cả <b>as-is</b> và <b>to-be</b>.</li>
+      <li class="done">Có câu nói rõ finding đổi gì trong SPEC.</li>
+      <li class="todo">Điền <b>Huỳnh An Nghiệp + 2A202600853</b> ở đầu file.</li>
+    </ul>
+
+    <div class="spec-final">
+      <b>Finding này đổi gì trong SPEC?</b><br>
+      SPEC build slice sẽ thêm <b>GROUNDING GUARDRAIL</b> bắt buộc cho mọi câu hỏi số liệu chi tiêu: mọi con số phải truy ngược về danh sách giao dịch thật (kèm link "xem N giao dịch"). Khi không tìm thấy giao dịch khớp, AI phải trả <b>"chưa có dữ liệu"</b> — tuyệt đối không bịa số. Kèm 1 test case bắt buộc: <b>"kỳ không có giao dịch chi" → kết quả phải là 0đ.</b>
+    </div>
+  </section>
+
+  <footer>App Teardown — Moni (MoMo) · Day 05 Individual Workshop · Batch 02</footer>
+</div>
+
+<div class="lb" id="lb" onclick="this.classList.remove('open')"><img id="lbimg" src="" alt=""></div>
+<script>
+  function zoom(src){var lb=document.getElementById('lb');document.getElementById('lbimg').src=src;lb.classList.add('open');}
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')document.getElementById('lb').classList.remove('open');});
+</script>
+</body>
+</html>
