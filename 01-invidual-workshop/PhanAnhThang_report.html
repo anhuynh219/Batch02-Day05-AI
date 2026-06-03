@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phân tích UX chatbot: Moni — MoMo</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --pink: #e91e8c;
+    --pink-light: #fce4f3;
+    --pink-dark: #a8125f;
+    --ink: #1a1118;
+    --ink-2: #4a3f47;
+    --ink-3: #8a7a86;
+    --surface: #fdf8fc;
+    --surface-2: #f5edf3;
+    --surface-3: #ede0ea;
+    --border: #ddd0da;
+    --red-bg: #fff0f0; --red-text: #991818;
+    --amber-bg: #fff8e6; --amber-text: #7a4f00;
+    --green-bg: #edfaf3; --green-text: #1a6640;
+    --blue-bg: #eef4ff; --blue-text: #1a3d8f;
+  }
+
+  body {
+    font-family: 'Be Vietnam Pro', sans-serif;
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Header */
+  header {
+    background: var(--ink);
+    color: #fff;
+    padding: 56px 0 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 320px; height: 320px;
+    background: var(--pink);
+    border-radius: 50%;
+    opacity: 0.12;
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: 10%;
+    width: 200px; height: 200px;
+    background: var(--pink);
+    border-radius: 50%;
+    opacity: 0.07;
+  }
+  .header-inner { max-width: 780px; margin: 0 auto; padding: 0 32px; position: relative; }
+  .header-tag {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--pink);
+    border: 1px solid rgba(233,30,140,0.4);
+    padding: 4px 12px;
+    border-radius: 99px;
+    margin-bottom: 20px;
+  }
+  header h1 {
+    font-size: clamp(26px, 4vw, 38px);
+    font-weight: 600;
+    line-height: 1.2;
+    margin-bottom: 10px;
+    letter-spacing: -0.02em;
+  }
+  header h1 span { color: var(--pink); }
+  .header-sub {
+    font-size: 14px;
+    color: rgba(255,255,255,0.5);
+    font-weight: 300;
+  }
+
+  /* Layout */
+  main { max-width: 780px; margin: 0 auto; padding: 48px 32px 80px; }
+
+  /* Section */
+  section { margin-bottom: 56px; }
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--pink);
+    margin-bottom: 8px;
+  }
+  h2 {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+    color: var(--ink);
+  }
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 28px 0 12px;
+    color: var(--ink);
+  }
+  p { color: var(--ink-2); margin-bottom: 14px; }
+  p:last-child { margin-bottom: 0; }
+  strong { color: var(--ink); font-weight: 600; }
+
+  /* Divider */
+  hr { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+
+  /* Blockquote / câu hỏi */
+  .question {
+    background: var(--ink);
+    color: #fff;
+    border-radius: 16px 16px 16px 4px;
+    padding: 14px 20px;
+    font-size: 14px;
+    font-style: italic;
+    display: inline-block;
+    margin-bottom: 20px;
+    max-width: 90%;
+    line-height: 1.5;
+  }
+
+  /* Break tags */
+  .break-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 12px;
+    border-radius: 99px;
+    margin-bottom: 10px;
+  }
+  .break-heavy { background: var(--red-bg); color: var(--red-text); }
+  .break-medium { background: var(--amber-bg); color: var(--amber-text); }
+  .break-light { background: var(--green-bg); color: var(--green-text); }
+
+  /* Tables */
+  .table-wrap { overflow-x: auto; margin: 16px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th {
+    background: var(--surface-2);
+    color: var(--ink);
+    font-weight: 600;
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 2px solid var(--border);
+    font-size: 13px;
+  }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink-2);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface-2); }
+
+  /* Lists */
+  ul, ol { padding-left: 20px; color: var(--ink-2); margin-bottom: 14px; }
+  li { margin-bottom: 6px; }
+
+  /* Flow diagrams */
+  .flow-wrap {
+    display: grid;
+    gap: 24px;
+    margin: 20px 0;
+  }
+  @media (min-width: 600px) {
+    .flow-wrap { grid-template-columns: 1fr 1fr; }
+  }
+  .flow-card {
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .flow-card-header {
+    padding: 12px 16px;
+    font-size: 12px;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+  }
+  .flow-card-header.as-is { background: #fff0f0; color: var(--red-text); }
+  .flow-card-header.to-be { background: var(--green-bg); color: var(--green-text); }
+  .flow-body { padding: 16px; background: #fff; }
+
+  .flow-node {
+    padding: 9px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    margin-bottom: 4px;
+    line-height: 1.4;
+  }
+  .flow-node.neutral { background: var(--surface-2); color: var(--ink-2); }
+  .flow-node.purple { background: #f0eeff; color: #3d2d9e; }
+  .flow-node.red { background: var(--red-bg); color: var(--red-text); border: 1px solid #ffc5c5; }
+  .flow-node.amber { background: var(--amber-bg); color: var(--amber-text); }
+  .flow-node.blue { background: var(--blue-bg); color: var(--blue-text); }
+  .flow-node.teal { background: var(--green-bg); color: var(--green-text); }
+  .flow-node.gray-out { background: var(--surface-3); color: var(--ink-3); }
+  .flow-node small { display: block; font-size: 11px; opacity: 0.75; margin-top: 2px; }
+
+  .flow-arrow {
+    text-align: center;
+    color: var(--ink-3);
+    font-size: 16px;
+    line-height: 1;
+    margin: 2px 0;
+  }
+  .flow-branch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 2px 0;
+  }
+  .break-label {
+    display: inline-block;
+    background: var(--red-bg);
+    color: var(--red-text);
+    font-size: 10px;
+    font-family: 'Space Mono', monospace;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 4px;
+    font-weight: 700;
+  }
+
+  /* Mockup chat */
+  .mockup-wrap {
+    background: var(--surface-2);
+    border-radius: 16px;
+    padding: 20px;
+    margin: 20px 0;
+  }
+  .mockup-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 14px;
+  }
+  .chat { display: flex; flex-direction: column; gap: 10px; }
+  .chat-user {
+    align-self: flex-end;
+    background: var(--pink);
+    color: #fff;
+    border-radius: 18px 18px 4px 18px;
+    padding: 10px 16px;
+    font-size: 13px;
+    max-width: 80%;
+    line-height: 1.5;
+  }
+  .chat-moni {
+    align-self: flex-start;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 18px 18px 18px 4px;
+    padding: 12px 16px;
+    font-size: 13px;
+    max-width: 88%;
+    line-height: 1.6;
+    color: var(--ink-2);
+  }
+  .status-badge {
+    display: inline-block;
+    background: var(--amber-bg);
+    color: var(--amber-text);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 99px;
+    margin-bottom: 8px;
+  }
+  .chat-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .chat-btn {
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    background: #fff;
+    cursor: pointer;
+    color: var(--ink-2);
+    font-family: 'Be Vietnam Pro', sans-serif;
+    transition: background 0.15s;
+  }
+  .chat-btn.primary { background: var(--pink); color: #fff; border-color: var(--pink); }
+
+  /* Insight box */
+  .insight {
+    background: var(--ink);
+    color: rgba(255,255,255,0.85);
+    border-radius: 16px;
+    padding: 24px 28px;
+    margin-top: 32px;
+    font-size: 15px;
+    line-height: 1.65;
+  }
+  .insight strong { color: #fff; }
+
+  /* Summary cards */
+  .summary-grid {
+    display: grid;
+    gap: 12px;
+    margin: 20px 0;
+  }
+  @media (min-width: 560px) { .summary-grid { grid-template-columns: repeat(3, 1fr); } }
+  .summary-card {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    background: #fff;
+  }
+  .summary-card .s-label { font-size: 12px; color: var(--ink-3); margin-bottom: 4px; }
+  .summary-card .s-title { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+  .summary-card .s-tag {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 99px;
+    display: inline-block;
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 32px;
+    font-size: 12px;
+    color: var(--ink-3);
+    font-family: 'Space Mono', monospace;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  section { animation: fadeUp 0.4s ease both; }
+  section:nth-child(2) { animation-delay: 0.05s; }
+  section:nth-child(3) { animation-delay: 0.10s; }
+  section:nth-child(4) { animation-delay: 0.15s; }
+  section:nth-child(5) { animation-delay: 0.20s; }
+  section:nth-child(6) { animation-delay: 0.25s; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="header-tag">Báo cáo workshop · Tháng 6/2026</div>
+    <h1>Phân tích UX chatbot:<br><span>Moni</span> — MoMo</h1>
+    <p class="header-sub">Tìm điểm gãy trong flow AI · 3 câu hỏi thực tế</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- Bối cảnh -->
+  <section>
+    <div class="section-label">Bối cảnh</div>
+    <h2>Phương pháp thử nghiệm</h2>
+    <p>Moni là trợ thủ AI tích hợp trong app MoMo, hỗ trợ phân tích chi tiêu và tư vấn tài chính cá nhân. Ba câu hỏi thực tế được thử nghiệm để tìm điểm gãy, gồm: câu hỏi về dữ liệu ngoài app, lỗi giao dịch kỹ thuật, và câu hỏi có mâu thuẫn mục tiêu nội tại.</p>
+  </section>
+
+  <hr>
+
+  <!-- Câu 1 -->
+  <section>
+    <div class="section-label">Câu hỏi 1</div>
+    <h2>Dữ liệu ngoài phạm vi app</h2>
+    <div class="question">"Tôi sử dụng tiền mặt để tiêu được bao nhiêu ngày trong tuần?"</div>
+
+    <span class="break-tag break-light">Mức độ: Nhẹ</span>
+
+    <p><strong>Phản hồi thực tế:</strong> Moni trả lời đúng về mặt kỹ thuật — xác nhận không có giao dịch tiền mặt nào trong tuần hiện tại — nhưng không đặt câu hỏi làm rõ ý định của user.</p>
+    <p><strong>Điểm gãy:</strong> Moni chỉ đọc dữ liệu trong app. Tiền mặt theo định nghĩa là ngoài hệ thống. Thay vì acknowledge giới hạn này và gợi ý cách ghi lại thủ công, Moni trả lời như thể câu hỏi đã được giải quyết hoàn toàn.</p>
+
+    <h3>Kỳ vọng vs thực tế</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>Kỳ vọng</th><th>Thực tế</th></tr></thead>
+        <tbody>
+          <tr><td>Nhận diện giới hạn</td><td>Thừa nhận không có dữ liệu tiền mặt</td><td>Có (đúng)</td></tr>
+          <tr><td>Hướng dẫn tiếp theo</td><td>Gợi ý ghi thủ công hoặc tạo danh mục</td><td>Chỉ đề cập chung chung</td></tr>
+          <tr><td>Cá nhân hoá</td><td>Gắn với thói quen chi tiêu của user</td><td>Không có</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <hr>
+
+  <!-- Câu 2 -->
+  <section>
+    <div class="section-label">Câu hỏi 2</div>
+    <h2>Lỗi giao dịch kỹ thuật</h2>
+    <div class="question">"Tôi vừa chuyển 10 triệu nhưng app không hiện, tại sao?"</div>
+
+    <span class="break-tag break-heavy">Mức độ: Nặng nhất</span>
+
+    <p><strong>Phản hồi thực tế:</strong> Moni từ chối hoàn toàn — <em>"Mình chỉ có thể hỗ trợ trong phạm vi sản phẩm MoMo."</em></p>
+    <p><strong>Điểm gãy:</strong> Đây là vấn đề <strong>trong chính sản phẩm MoMo</strong>, không phải bên ngoài. Câu trả lời cho thấy Moni không được kết nối với transaction API, dẫn đến không thể tra cứu, xác nhận, hay hướng dẫn user bước tiếp theo.</p>
+
+    <h3>3 điểm gãy trong flow</h3>
+    <ol>
+      <li>Không truy cập được trạng thái giao dịch thực tế</li>
+      <li>Không đoán được nguyên nhân (pending / thất bại / delay)</li>
+      <li>Không có handoff rõ ràng sang CSKH hoặc nút "Kiểm tra lại"</li>
+    </ol>
+  </section>
+
+  <hr>
+
+  <!-- Câu 3 -->
+  <section>
+    <div class="section-label">Câu hỏi 3</div>
+    <h2>Mâu thuẫn mục tiêu</h2>
+    <div class="question">"Vừa tiêu ít vừa muốn sống tốt hơn phải làm sao?"</div>
+
+    <span class="break-tag break-medium">Mức độ: Trung bình</span>
+
+    <p><strong>Phản hồi thực tế:</strong> Moni đưa ra danh sách 5 lời khuyên chung: lập ngân sách, theo dõi chi tiêu, tìm khuyến mãi, đầu tư sức khỏe, tiết kiệm thông minh. Cuối câu, gợi ý ưu đãi tại cửa hàng.</p>
+    <p><strong>Điểm gãy:</strong> Đây là câu khó nhất — không phải lỗi kỹ thuật mà là mâu thuẫn tồn tại ngay trong đầu user.</p>
+    <ul>
+      <li>Moni không nhận ra xung đột giữa "tiêu ít" và "sống tốt hơn"</li>
+      <li>Trả lời generic, không dùng bất kỳ dữ liệu chi tiêu thực tế của user</li>
+      <li>Gợi ý voucher cuối bài cảm giác như bán hàng, không phải tư vấn</li>
+    </ul>
+    <p><strong>Điều Moni thiếu:</strong> Khả năng hỏi lại để làm rõ ưu tiên, rồi dùng data thực để đề xuất trade-off cụ thể — ví dụ: <em>"Nếu giảm ăn ngoài từ 3.2 triệu xuống 2 triệu, bạn có thêm 1.2 triệu để dành cho trải nghiệm có giá trị hơn."</em></p>
+  </section>
+
+  <hr>
+
+  <!-- Flow -->
+  <section>
+    <div class="section-label">Flow phân tích</div>
+    <h2>Path yếu nhất — sửa câu 2</h2>
+
+    <div class="flow-wrap">
+      <div class="flow-card">
+        <div class="flow-card-header as-is">AS-IS · Thực tế từ màn hình</div>
+        <div class="flow-body">
+          <div class="flow-node neutral">User chuyển 10 triệu</div>
+          <div class="flow-arrow">↓</div>
+          <div class="flow-node purple">Giao dịch không hiện<small>User hỏi Moni "tại sao?"</small></div>
+          <div class="flow-arrow">↓</div>
+          <div>
+            <div class="break-label">GÃY</div>
+            <div class="flow-node red">Moni từ chối hoàn toàn<small>"Ngoài phạm vi sản phẩm MoMo" — nhưng đây LÀ vấn đề trong MoMo</small></div>
+          </div>
+          <div class="flow-arrow">↓</div>
+          <div class="flow-node amber">User kẹt — không nút, không link, không CSKH</div>
+          <div class="flow-arrow">↓</div>
+          <div class="flow-node gray-out">Thoát app, gọi hotline thủ công</div>
+        </div>
+      </div>
+
+      <div class="flow-card">
+        <div class="flow-card-header to-be">TO-BE · Flow đã sửa</div>
+        <div class="flow-body">
+          <div class="flow-node purple">User hỏi về giao dịch không hiện</div>
+          <div class="flow-arrow">↓</div>
+          <div class="flow-node blue">Moni tra cứu transaction API<small>Tìm GD theo số tiền + thời gian</small></div>
+          <div class="flow-arrow">↓</div>
+          <div class="flow-branch">
+            <div class="flow-node amber" style="text-align:center;">Đang xử lý<small>pending / delay</small></div>
+            <div class="flow-node red" style="text-align:center;">Thất bại<small>lỗi / hoàn tiền</small></div>
+          </div>
+          <div class="flow-arrow">↓</div>
+          <div class="flow-node teal">Moni phản hồi + đề xuất action rõ ràng</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>Mockup phản hồi — trường hợp "đang xử lý"</h3>
+    <div class="mockup-wrap">
+      <p class="mockup-label">Mô phỏng giao diện chat</p>
+      <div class="chat">
+        <div class="chat-user">Tôi vừa chuyển 10 triệu nhưng app không hiện, tại sao?</div>
+        <div class="chat-moni">
+          <span class="status-badge">Đang xử lý</span><br>
+          Mình kiểm tra rồi — giao dịch <strong>10.000.000đ</strong> của bạn đang trong trạng thái <strong>chờ xử lý</strong>. Thường mất 5–15 phút để cập nhật.<br><br>
+          <span style="color:var(--ink-3); font-size:12px;">Nếu sau 30 phút vẫn chưa hiện, bạn có thể:</span>
+          <div class="chat-actions">
+            <button class="chat-btn primary">Kiểm tra lại</button>
+            <button class="chat-btn">Liên hệ hỗ trợ</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3>3 thay đổi cốt lõi</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>As-is</th><th>To-be</th></tr></thead>
+        <tbody>
+          <tr><td>Nhận diện vấn đề</td><td>Từ chối — "ngoài phạm vi"</td><td>Tra cứu transaction API</td></tr>
+          <tr><td>Trạng thái GD</td><td>Không biết</td><td>Pending / failed / hoàn tiền</td></tr>
+          <tr><td>Bước tiếp theo</td><td>Không có</td><td>Nút "Kiểm tra lại" + handoff CSKH</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <hr>
+
+  <!-- Tổng kết -->
+  <section>
+    <div class="section-label">Tổng kết</div>
+    <h2>Điểm gãy theo mức độ</h2>
+
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="s-label">Câu hỏi 1</div>
+        <div class="s-title">Tiền mặt</div>
+        <p style="font-size:13px; color:var(--ink-3); margin-bottom:10px;">Dữ liệu ngoài app, thiếu follow-up</p>
+        <span class="s-tag" style="background:var(--green-bg); color:var(--green-text);">Nhẹ</span>
+      </div>
+      <div class="summary-card" style="border-color:#ffc5c5;">
+        <div class="s-label">Câu hỏi 2</div>
+        <div class="s-title">10 triệu không hiện</div>
+        <p style="font-size:13px; color:var(--ink-3); margin-bottom:10px;">Không kết nối transaction API</p>
+        <span class="s-tag" style="background:var(--red-bg); color:var(--red-text);">Nặng</span>
+      </div>
+      <div class="summary-card">
+        <div class="s-label">Câu hỏi 3</div>
+        <div class="s-title">Tiêu ít sống tốt</div>
+        <p style="font-size:13px; color:var(--ink-3); margin-bottom:10px;">Thiếu intent disambiguation</p>
+        <span class="s-tag" style="background:var(--amber-bg); color:var(--amber-text);">Trung bình</span>
+      </div>
+    </div>
+
+    <div class="insight">
+      <strong>Insight chung:</strong> Moni xử lý tốt các câu hỏi có dữ liệu rõ ràng trong hệ thống. Điểm gãy xuất hiện khi câu hỏi cần (1) dữ liệu thời gian thực, (2) reasoning về tình huống nhạy cảm với user, hoặc (3) cá nhân hoá dựa trên lịch sử chi tiêu thực tế.<br><br>
+      <strong>Thay đổi lớn nhất không phải kỹ thuật mà về tư duy:</strong> Moni cần chuyển từ "trả lời câu hỏi" sang "giải quyết vấn đề của user".
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Thực hiện trong khuôn khổ bài tập workshop · Tháng 6/2026
+</footer>
+
+</body>
+</html>
